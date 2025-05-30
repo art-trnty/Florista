@@ -1,3 +1,4 @@
+import 'package:florista/screens/Store/EditStoreScreen.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:florista/models/StoreModel.dart';
@@ -63,6 +64,43 @@ class _AllStoresScreenState extends State<AllStoresScreen>
     }
   }
 
+  void _showStoreSelectionDialog() {
+    final adminStores =
+        _stores.where((store) => store.owner == _currentUserUid).toList();
+
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text("Pilih Toko untuk Diedit"),
+          content: SizedBox(
+            width: double.maxFinite,
+            child: ListView.builder(
+              shrinkWrap: true,
+              itemCount: adminStores.length,
+              itemBuilder: (context, index) {
+                final store = adminStores[index];
+                return ListTile(
+                  leading: const Icon(Icons.store),
+                  title: Text(store.name),
+                  onTap: () {
+                    Navigator.of(context).pop(); // tutup dialog
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => EditStoreScreen(store: store),
+                      ),
+                    );
+                  },
+                );
+              },
+            ),
+          ),
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -71,6 +109,13 @@ class _AllStoresScreenState extends State<AllStoresScreen>
         backgroundColor: Colors.green,
         foregroundColor: Colors.white,
         elevation: 0,
+        actions: [
+          if (_stores.any((store) => store.owner == _currentUserUid))
+            IconButton(
+              icon: const Icon(Icons.edit),
+              onPressed: () => _showStoreSelectionDialog(),
+            ),
+        ],
       ),
       body: Container(
         decoration: const BoxDecoration(
