@@ -1,7 +1,9 @@
 import 'dart:convert';
 import 'dart:io';
-
 import 'package:flutter/material.dart';
+import 'package:geolocator/geolocator.dart';
+import 'package:geocoding/geocoding.dart';
+import 'package:url_launcher/url_launcher_string.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -34,6 +36,86 @@ class _AddPostScreenState extends State<AddPostScreen> {
       setState(() {
         _selectedImage = File(pickedFile.path);
         _base64Image = base64Encode(imageBytes);
+      });
+    }
+  }
+
+  Future<void> _pickLocation() async {
+    try {
+      final hasPermission = await Geolocator.checkPermission();
+      if (hasPermission == LocationPermission.denied ||
+          hasPermission == LocationPermission.deniedForever) {
+        final permission = await Geolocator.requestPermission();
+        if (permission == LocationPermission.denied ||
+            permission == LocationPermission.deniedForever) {
+          throw 'Izin lokasi ditolak';
+        }
+      }
+
+      Position position = await Geolocator.getCurrentPosition(
+        desiredAccuracy: LocationAccuracy.high,
+      );
+
+      final url =
+          'https://www.google.com/maps/search/?api=1&query=${position.latitude},${position.longitude}';
+
+      if (!await canLaunchUrlString(url)) {
+        throw 'Tidak dapat membuka Google Maps';
+      }
+
+      await launchUrlString(url);
+    } catch (e) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Gagal membuka alamat: $e')));
+    }
+  }
+
+  Future<void> _getCurrentLocation() async {
+    bool serviceEnabled;
+    LocationPermission permission;
+
+    serviceEnabled = await Geolocator.isLocationServiceEnabled();
+    if (!serviceEnabled) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Layanan lokasi tidak aktif.")),
+      );
+      return;
+    }
+
+    permission = await Geolocator.checkPermission();
+    if (permission == LocationPermission.denied) {
+      permission = await Geolocator.requestPermission();
+      if (permission == LocationPermission.denied) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text("Izin lokasi ditolak.")));
+        return;
+      }
+    }
+
+    if (permission == LocationPermission.deniedForever) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Izin lokasi ditolak permanen.")),
+      );
+      return;
+    }
+
+    Position position = await Geolocator.getCurrentPosition(
+      desiredAccuracy: LocationAccuracy.high,
+    );
+
+    List<Placemark> placemarks = await placemarkFromCoordinates(
+      position.latitude,
+      position.longitude,
+    );
+
+    if (placemarks.isNotEmpty) {
+      final place = placemarks.first;
+      final address =
+          "${place.street}, ${place.subLocality}, ${place.locality}, ${place.administrativeArea} ${place.postalCode}";
+      setState(() {
+        _addressController.text = address;
       });
     }
   }
@@ -95,7 +177,7 @@ class _AddPostScreenState extends State<AddPostScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Tambah Toko dan Akun"),
+        title: const Text("Tambah Toko"),
         backgroundColor: Colors.green,
       ),
       body: SingleChildScrollView(
@@ -134,7 +216,18 @@ class _AddPostScreenState extends State<AddPostScreen> {
               ),
               const SizedBox(height: 16),
               _buildTextField("Nama Toko", _nameController),
-              _buildTextField("Alamat", _addressController),
+              _buildTextFieldWithIcon(
+                label: "Alamat",
+                controller: _addressController,
+                icon: Icons.my_location,
+                onIconPressed: _getCurrentLocation, // <- Pastikan ini ada
+              ),
+              IconButton(
+                icon: const Icon(Icons.location_on),
+                color: Colors.green,
+                onPressed: _pickLocation,
+              ),
+
               _buildTextField("Deskripsi", _descriptionController, maxLines: 3),
               _buildTextField(
                 "Nomor Telepon",
@@ -189,6 +282,39 @@ class _AddPostScreenState extends State<AddPostScreen> {
           border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
           filled: true,
           fillColor: Colors.grey[100],
+        ),
+        validator:
+            (value) =>
+                value == null || value.isEmpty
+                    ? "$label tidak boleh kosong"
+                    : null,
+      ),
+    );
+  }
+
+  Widget _buildTextFieldWithIcon({
+    required String label,
+    required TextEditingController controller,
+    IconData? icon,
+    VoidCallback? onIconPressed,
+    int maxLines = 1,
+    TextInputType keyboardType = TextInputType.text,
+  }) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 16),
+      child: TextFormField(
+        controller: controller,
+        maxLines: maxLines,
+        keyboardType: keyboardType,
+        decoration: InputDecoration(
+          labelText: label,
+          border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+          filled: true,
+          fillColor: Colors.grey[100],
+          suffixIcon:
+              icon != null
+                  ? IconButton(icon: Icon(icon), onPressed: onIconPressed)
+                  : null,
         ),
         validator:
             (value) =>

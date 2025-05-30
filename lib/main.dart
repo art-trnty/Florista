@@ -2,19 +2,27 @@ import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:florista/firebase_options.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:florista/screens/HomeScreen.dart';
 import 'package:florista/screens/SignInScreen.dart';
 import 'package:firebase_app_check/firebase_app_check.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
-  );
+  await _ensureLocationPermission();
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   await FirebaseAppCheck.instance.activate(
     webProvider: ReCaptchaV3Provider('recaptcha-v3-site-key'),
   );
   runApp(const MyApp());
+}
+
+Future<void> _ensureLocationPermission() async {
+  LocationPermission permission = await Geolocator.checkPermission();
+  if (permission == LocationPermission.denied ||
+      permission == LocationPermission.deniedForever) {
+    permission = await Geolocator.requestPermission();
+  }
 }
 
 class MyApp extends StatelessWidget {
@@ -58,8 +66,9 @@ class WelcomeScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor:
-          const Color(0xFFE6F3FF), // biru muda seperti background gambar
+      backgroundColor: const Color(
+        0xFFE6F3FF,
+      ), // biru muda seperti background gambar
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -91,10 +100,7 @@ class WelcomeScreen extends StatelessWidget {
             // Subjudul atau deskripsi singkat
             const Text(
               'Jelajahi koleksi bunga terbaik dan \ntemukan pesona alam yang memikat.',
-              style: TextStyle(
-                fontSize: 16,
-                color: Color(0xFF555555),
-              ),
+              style: TextStyle(fontSize: 16, color: Color(0xFF555555)),
               textAlign: TextAlign.center,
             ),
 
@@ -116,8 +122,10 @@ class WelcomeScreen extends StatelessWidget {
                   ),
                   borderRadius: BorderRadius.circular(30),
                 ),
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 50, vertical: 16),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 50,
+                  vertical: 16,
+                ),
                 child: const Text(
                   'Mulai Sekarang',
                   style: TextStyle(

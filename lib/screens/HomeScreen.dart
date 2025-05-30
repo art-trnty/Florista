@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:shimmer/shimmer.dart';
 import 'package:florista/models/ProductModel.dart';
 import 'package:florista/models/StoreModel.dart';
 import 'package:florista/screens/Store/AllStoreScreen.dart';
@@ -7,7 +8,6 @@ import 'package:flutter/material.dart';
 import 'package:florista/screens/AdditionalFeaturesScreen/ProfileDetailScreens.dart';
 import 'package:florista/services/location_service.dart';
 import 'package:florista/services/auth_service.dart';
-import 'package:florista/widgets/ProductCard.dart';
 import 'package:florista/widgets/StoreCard.dart';
 import 'package:florista/AddPostScreen.dart';
 
@@ -26,6 +26,8 @@ class _HomeScreenState extends State<HomeScreen> {
   List<ProductModel> _products = [];
   List<StoreModel> _stores = [];
   int _selectedIndex = 0;
+  final TextEditingController _searchController = TextEditingController();
+  String _searchKeyword = "";
 
   @override
   void initState() {
@@ -143,6 +145,12 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final filteredStores =
+        _stores.where((store) {
+          final name = store.name.toLowerCase();
+          return name.contains(_searchKeyword);
+        }).toList();
+
     return Scaffold(
       backgroundColor: Colors.white,
       floatingActionButton:
@@ -173,156 +181,190 @@ class _HomeScreenState extends State<HomeScreen> {
             end: Alignment.bottomCenter,
           ),
         ),
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              SizedBox(height: 10),
-              Row(
-                children: [
-                  const Icon(Icons.location_on, color: Colors.green),
-                  const SizedBox(width: 6),
-                  Expanded(
-                    child: Text(
-                      _address,
-                      style: const TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                        color: Colors.black87,
-                      ),
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 16),
-
-              Row(
-                children: [
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(15.0),
-                    child: Image.asset(
-                      'assets/Additional/Flowers.jpg',
-                      width: 190,
-                      height: 190,
-                      fit: BoxFit.cover,
-                    ),
-                  ),
-                  SizedBox(width: 20),
-                  Expanded(
-                    child: Text(
-                      'Selamat datang di aplikasi Toko Tanaman Hias kami! Di sini, Anda dapat menemukan berbagai toko yang menjual tanaman hias terbaik di kota. Temukan rekomendasi toko favorit Anda dan buat taman Anda lebih indah.',
-                      style: TextStyle(
-                        fontSize: 16,
-                        color: Colors.black87,
-                        fontFamily: 'Roboto',
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-
-              // Konten scrollable
-              SingleChildScrollView(
-                padding: EdgeInsets.only(
-                  left: 16,
-                  right: 16,
-                  top: 16,
-                  bottom: MediaQuery.of(context).viewInsets.bottom + 24,
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+        child: SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // 🔹 Header dengan lokasi & foto profil
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 16),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(12),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.grey.shade300,
-                            blurRadius: 6,
-                            offset: const Offset(0, 2),
-                          ),
-                        ],
-                      ),
-                      child: const TextField(
-                        decoration: InputDecoration(
-                          icon: Icon(Icons.search, color: Colors.green),
-                          border: InputBorder.none,
-                          hintText: "Cari Toko tanaman hias terdekat...",
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 24),
                     Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        const Text(
-                          "Daftar Toko Tanaman Hias",
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 18,
-                            color: Colors.green,
-                          ),
-                        ),
-                        GestureDetector(
-                          onTap: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => const AllStoresScreen(),
-                              ),
-                            );
-                          },
-                          child: const Text(
-                            "Lihat Semua",
-                            style: TextStyle(
-                              color: Colors.green,
-                              fontWeight: FontWeight.w600,
-                              fontSize: 14,
+                        const Icon(Icons.location_on, color: Colors.green),
+                        const SizedBox(width: 6),
+                        SizedBox(
+                          width: 200,
+                          child: Text(
+                            _address,
+                            style: const TextStyle(
+                              fontSize: 15,
+                              fontWeight: FontWeight.w500,
+                              color: Colors.black87,
                             ),
+                            overflow: TextOverflow.ellipsis,
                           ),
                         ),
                       ],
                     ),
-                    const SizedBox(height: 12),
-                    SizedBox(
-                      height: 160,
-                      child:
-                          _stores.isEmpty
-                              ? const Center(child: Text("Belum ada toko."))
-                              : ListView.builder(
-                                scrollDirection: Axis.horizontal,
-                                itemCount: _stores.length,
-                                itemBuilder: (context, index) {
-                                  final store = _stores[index];
-                                  return GestureDetector(
-                                    onTap: () {
-                                      Navigator.of(context).push(
-                                        MaterialPageRoute(
-                                          builder:
-                                              (context) => StoreDetailScreen(
-                                                store: store,
-                                              ),
-                                        ),
-                                      );
-                                    },
-                                    child: StoreCard(
-                                      store: store,
-                                      currentUserUid: _currentUserUid,
-                                      onDelete: () => _deleteStore(store.id),
-                                    ),
-                                  );
-                                },
-                              ),
+                    GestureDetector(
+                      onTap: () => _onItemTapped(3),
+                      child: CircleAvatar(
+                        backgroundImage:
+                            _profileImageUrl.startsWith("http")
+                                ? NetworkImage(_profileImageUrl)
+                                : AssetImage(_profileImageUrl) as ImageProvider,
+                        radius: 20,
+                      ),
                     ),
                   ],
                 ),
-              ),
-            ],
+                const SizedBox(height: 16),
+
+                // 🔹 Banner Gambar
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(20),
+                  child: Image.asset(
+                    'assets/Additional/Flowers.jpg',
+                    height: 180,
+                    width: double.infinity,
+                    fit: BoxFit.cover,
+                  ),
+                ),
+                const SizedBox(height: 16),
+
+                // 🔹 Deskripsi Aplikasi
+                const Text(
+                  'Temukan Toko Tanaman Hias Favorit Anda',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.green,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                const Text(
+                  'Aplikasi ini membantu Anda menemukan berbagai toko tanaman hias terbaik di kota. Jelajahi dan buat taman Anda lebih hidup!',
+                  style: TextStyle(fontSize: 14, color: Colors.black87),
+                ),
+
+                const SizedBox(height: 24),
+
+                // 🔹 Search Box
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(14),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.grey.withOpacity(0.25),
+                        blurRadius: 6,
+                        offset: const Offset(0, 2),
+                      ),
+                    ],
+                  ),
+                  child: TextField(
+                    controller: _searchController,
+                    onChanged: (value) {
+                      setState(() {
+                        _searchKeyword = value.toLowerCase();
+                      });
+                    },
+                    decoration: const InputDecoration(
+                      icon: Icon(Icons.search, color: Colors.green),
+                      border: InputBorder.none,
+                      hintText: "Cari toko tanaman hias...",
+                    ),
+                  ),
+                ),
+
+                const SizedBox(height: 24),
+
+                // 🔹 Section Title
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Text(
+                      "Toko Tanaman Hias",
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 18,
+                        color: Colors.green,
+                      ),
+                    ),
+                    GestureDetector(
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const AllStoresScreen(),
+                          ),
+                        );
+                      },
+                      child: const Text(
+                        "Lihat Semua",
+                        style: TextStyle(
+                          color: Colors.green,
+                          fontWeight: FontWeight.w600,
+                          fontSize: 14,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+
+                const SizedBox(height: 12),
+
+                // 🔹 Daftar toko (horizontal scroll)
+                Expanded(
+                  child:
+                      _stores.isEmpty
+                          ? Center(
+                            child: CircularProgressIndicator(),
+                          ) // contoh shimmer/loader
+                          : filteredStores.isEmpty
+                          ? const Center(
+                            child: Text(
+                              "Toko tidak ditemukan.",
+                              style: TextStyle(color: Colors.grey),
+                            ),
+                          )
+                          : GridView.builder(
+                            padding: const EdgeInsets.only(top: 8),
+                            itemCount: filteredStores.length,
+                            gridDelegate:
+                                const SliverGridDelegateWithFixedCrossAxisCount(
+                                  crossAxisCount: 2,
+                                  crossAxisSpacing: 12,
+                                  mainAxisSpacing: 12,
+                                  childAspectRatio: 1.1,
+                                ),
+                            itemBuilder: (context, index) {
+                              final store = filteredStores[index];
+                              return GestureDetector(
+                                onTap: () {
+                                  Navigator.of(context).push(
+                                    MaterialPageRoute(
+                                      builder:
+                                          (context) =>
+                                              StoreDetailScreen(store: store),
+                                    ),
+                                  );
+                                },
+                                child: StoreCard(
+                                  store: store,
+                                  currentUserUid: _currentUserUid,
+                                  onDelete: () => _deleteStore(store.id),
+                                ),
+                              );
+                            },
+                          ),
+                ),
+              ],
+            ),
           ),
         ),
       ),
