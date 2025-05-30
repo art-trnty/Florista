@@ -116,8 +116,8 @@ class _EditStoreScreenState extends State<EditStoreScreen> {
             )
             : Container(
               height: 160,
-              color: Colors.grey[300],
-              child: const Icon(Icons.store, size: 80, color: Colors.white),
+              alignment: Alignment.center,
+              child: const CircularProgressIndicator(),
             );
 
     return Scaffold(
@@ -153,12 +153,8 @@ class _EditStoreScreenState extends State<EditStoreScreen> {
                             )
                             : Container(
                               height: 160,
-                              color: Colors.grey[300],
-                              child: const Icon(
-                                Icons.store,
-                                size: 80,
-                                color: Colors.white,
-                              ),
+                              alignment: Alignment.center,
+                              child: const CircularProgressIndicator(),
                             ),
                   ),
 

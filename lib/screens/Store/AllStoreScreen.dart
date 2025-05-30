@@ -128,22 +128,22 @@ class _AllStoresScreenState extends State<AllStoresScreen>
         ),
         child:
             _stores.isEmpty
-                ? Center(
+                ? const Center(
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Image.asset("assets/empty_store.png", height: 160),
-                      const SizedBox(height: 16),
-                      const Text(
-                        "Belum ada toko tersedia",
+                      CircularProgressIndicator(color: Colors.green),
+                      SizedBox(height: 16),
+                      Text(
+                        "Memuat data toko...",
                         style: TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.w600,
                           color: Colors.grey,
                         ),
                       ),
-                      const SizedBox(height: 8),
-                      const Text(
+                      SizedBox(height: 8),
+                      Text(
                         "Tunggu sebentar atau coba lagi nanti.",
                         style: TextStyle(color: Colors.grey),
                       ),
