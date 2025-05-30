@@ -83,14 +83,15 @@ class _AllStoresScreenState extends State<AllStoresScreen>
                 return ListTile(
                   leading: const Icon(Icons.store),
                   title: Text(store.name),
-                  onTap: () {
+                  onTap: () async {
                     Navigator.of(context).pop(); // tutup dialog
-                    Navigator.push(
+                    await Navigator.push(
                       context,
                       MaterialPageRoute(
                         builder: (context) => EditStoreScreen(store: store),
                       ),
                     );
+                    _fetchStores(); // ambil ulang data toko setelah kembali
                   },
                 );
               },
