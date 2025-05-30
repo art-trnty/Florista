@@ -1,0 +1,49 @@
+{
+  "project_info": {
+    "project_number": "111899267383",
+    "firebase_url": "https://florista-efb35-default-rtdb.firebaseio.com",
+    "project_id": "florista-efb35",
+    "storage_bucket": "florista-efb35.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:111899267383:android:c7842c5a6514d70a37cab2",
+        "android_client_info": {
+          "package_name": "com.example.firebase_authentication"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDjrGQt-vRcXQjsIgSGEw8ppz0irkUApsM"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:111899267383:android:31f30c3e8a9a122637cab2",
+        "android_client_info": {
+          "package_name": "com.example.florista"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDjrGQt-vRcXQjsIgSGEw8ppz0irkUApsM"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
