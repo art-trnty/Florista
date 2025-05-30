@@ -1,10 +1,10 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:florista/models/ProductModel.dart';
 import 'package:florista/models/StoreModel.dart';
-import 'package:florista/screens/AllStoreScreen.dart';
-import 'package:florista/screens/Product/StoreDetailScreen.dart';
+import 'package:florista/screens/Store/AllStoreScreen.dart';
+import 'package:florista/screens/Store/StoreDetailScreen.dart';
 import 'package:flutter/material.dart';
-import 'package:florista/screens/ProfileDetailScreens.dart';
+import 'package:florista/screens/AdditionalFeaturesScreen/ProfileDetailScreens.dart';
 import 'package:florista/services/location_service.dart';
 import 'package:florista/services/auth_service.dart';
 import 'package:florista/widgets/ProductCard.dart';

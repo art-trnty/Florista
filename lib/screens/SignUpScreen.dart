@@ -1,5 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:florista/screens/ProfileDetailScreens.dart';
+import 'package:florista/screens/AdditionalFeaturesScreen/ProfileDetailScreens.dart';
 import 'package:florista/screens/SignInScreen.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
