@@ -27,8 +27,18 @@ class SignUpScreenState extends State<SignUpScreen> {
   bool _isConfirmPasswordVisible = false;
   String? _selectedGender;
   String? _selectedRole;
+
   final List<String> _genders = ['Male', 'Female'];
   final List<String> _roles = ['Pengguna', 'Admin'];
+  Future<bool> _isUsernameExists(String username) async {
+    final querySnapshot =
+        await FirebaseFirestore.instance
+            .collection('users')
+            .where('username', isEqualTo: username)
+            .get();
+
+    return querySnapshot.docs.isNotEmpty;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -49,7 +59,10 @@ class SignUpScreenState extends State<SignUpScreen> {
           Positioned.fill(
             child: Opacity(
               opacity: 0.1,
-              child: Image.asset('assets/images/bg.jpg', fit: BoxFit.cover),
+              child: Image.asset(
+                'assets/images/backgroundSign-Up.jpg',
+                fit: BoxFit.cover,
+              ),
             ),
           ),
           // Form content
@@ -120,6 +133,12 @@ class SignUpScreenState extends State<SignUpScreen> {
                             border: OutlineInputBorder(),
                             prefixIcon: Icon(Icons.person),
                           ),
+                          validator: (value) {
+                            if (value == null || value.isEmpty) {
+                              return 'Nama tidak boleh kosong';
+                            }
+                            return null;
+                          },
                         ),
                         const SizedBox(height: 16),
                         TextFormField(
@@ -130,6 +149,12 @@ class SignUpScreenState extends State<SignUpScreen> {
                             border: OutlineInputBorder(),
                             prefixIcon: Icon(Icons.account_circle),
                           ),
+                          validator: (value) {
+                            if (value == null || value.isEmpty) {
+                              return 'Username tidak boleh kosong';
+                            }
+                            return null;
+                          },
                         ),
                         const SizedBox(height: 16),
                         TextFormField(
@@ -140,6 +165,12 @@ class SignUpScreenState extends State<SignUpScreen> {
                             border: OutlineInputBorder(),
                             prefixIcon: Icon(Icons.home),
                           ),
+                          validator: (value) {
+                            if (value == null || value.isEmpty) {
+                              return 'Alamat tidak boleh kosong';
+                            }
+                            return null;
+                          },
                         ),
                         const SizedBox(height: 16),
                         TextFormField(
@@ -153,10 +184,10 @@ class SignUpScreenState extends State<SignUpScreen> {
                           ),
                           validator: (value) {
                             if (value == null || value.isEmpty) {
-                              return 'Please enter your phone number';
+                              return 'Nomor HP tidak boleh kosong';
                             }
                             if (!RegExp(r'^\d{10,13}$').hasMatch(value)) {
-                              return 'Please enter a valid phone number';
+                              return 'Masukkan nomor HP yang valid';
                             }
                             return null;
                           },
@@ -184,6 +215,9 @@ class SignUpScreenState extends State<SignUpScreen> {
                               _selectedGender = value;
                             });
                           },
+                          validator:
+                              (value) =>
+                                  value == null ? 'Pilih jenis kelamin' : null,
                         ),
                         const SizedBox(height: 16),
                         DropdownButtonFormField<String>(
@@ -208,6 +242,8 @@ class SignUpScreenState extends State<SignUpScreen> {
                               _selectedRole = value;
                             });
                           },
+                          validator:
+                              (value) => value == null ? 'Pilih peran' : null,
                         ),
                         const SizedBox(height: 16),
                         TextFormField(
@@ -218,6 +254,17 @@ class SignUpScreenState extends State<SignUpScreen> {
                             border: OutlineInputBorder(),
                             prefixIcon: Icon(Icons.email),
                           ),
+                          validator: (value) {
+                            if (value == null || value.isEmpty) {
+                              return 'Email tidak boleh kosong';
+                            }
+                            if (!RegExp(
+                              r'^[\w-\.]+@([\w-]+\.)+[\w]{2,4}$',
+                            ).hasMatch(value)) {
+                              return 'Masukkan email yang valid';
+                            }
+                            return null;
+                          },
                         ),
                         const SizedBox(height: 16),
                         TextFormField(
@@ -241,6 +288,15 @@ class SignUpScreenState extends State<SignUpScreen> {
                             ),
                           ),
                           obscureText: !_isPasswordVisible,
+                          validator: (value) {
+                            if (value == null || value.isEmpty) {
+                              return 'Password tidak boleh kosong';
+                            }
+                            if (value.length < 6) {
+                              return 'Password minimal 6 karakter';
+                            }
+                            return null;
+                          },
                         ),
                         const SizedBox(height: 16),
                         TextFormField(
@@ -265,6 +321,15 @@ class SignUpScreenState extends State<SignUpScreen> {
                             ),
                           ),
                           obscureText: !_isConfirmPasswordVisible,
+                          validator: (value) {
+                            if (value == null || value.isEmpty) {
+                              return 'Konfirmasi password tidak boleh kosong';
+                            }
+                            if (value != _passwordController.text) {
+                              return 'Password tidak cocok';
+                            }
+                            return null;
+                          },
                         ),
                         const SizedBox(height: 24),
                         SizedBox(
@@ -275,6 +340,9 @@ class SignUpScreenState extends State<SignUpScreen> {
                               backgroundColor: Colors.green.shade600,
                               padding: const EdgeInsets.symmetric(
                                 vertical: 16.0,
+                              ),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
                               ),
                             ),
                             child:
@@ -303,6 +371,8 @@ class SignUpScreenState extends State<SignUpScreen> {
   void _signUp() async {
     if (!_formKey.currentState!.validate()) return;
 
+    // Cek apakah username sudah ada
+
     final email = _emailController.text.trim();
     final password = _passwordController.text;
     final name = _nameController.text.trim();
@@ -311,6 +381,15 @@ class SignUpScreenState extends State<SignUpScreen> {
     final phoneNumber = _phoneNumberController.text.trim();
     final gender = _selectedGender ?? '';
     final role = _selectedRole ?? '';
+    bool exists = await _isUsernameExists(username);
+
+    if (exists) {
+      _showErrorMessage(
+        'Username sudah digunakan. Silakan pilih username lain.',
+      );
+      setState(() => _isLoading = false);
+      return;
+    }
 
     setState(() => _isLoading = true);
 
@@ -355,13 +434,13 @@ class SignUpScreenState extends State<SignUpScreen> {
   String _getAuthErrorMessage(String code) {
     switch (code) {
       case 'weak-password':
-        return 'The password provided is too weak.';
+        return 'Password terlalu lemah.';
       case 'email-already-in-use':
-        return 'The account already exists for that email.';
+        return 'Akun dengan email tersebut sudah terdaftar.';
       case 'invalid-email':
-        return 'The email address is not valid.';
+        return 'Email tidak valid.';
       default:
-        return 'An error occurred. Please try again.';
+        return 'Terjadi kesalahan. Silakan coba lagi.';
     }
   }
 }
