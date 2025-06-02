@@ -66,9 +66,7 @@ class WelcomeScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(
-        0xFFE6F3FF,
-      ), // biru muda seperti background gambar
+      backgroundColor: const Color(0xFFE6F3FF),
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -97,7 +95,6 @@ class WelcomeScreen extends StatelessWidget {
 
             const SizedBox(height: 12),
 
-            // Subjudul atau deskripsi singkat
             const Text(
               'Jelajahi koleksi bunga terbaik dan \ntemukan pesona alam yang memikat.',
               style: TextStyle(fontSize: 16, color: Color(0xFF555555)),
@@ -106,8 +103,6 @@ class WelcomeScreen extends StatelessWidget {
 
             const SizedBox(height: 40),
 
-            // Tombol Masuk
-            // Tombol dengan gradasi warna
             GestureDetector(
               onTap: () {
                 Navigator.push(

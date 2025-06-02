@@ -1,6 +1,5 @@
 import 'dart:convert';
 import 'dart:typed_data';
-
 import 'package:florista/models/StoreModel.dart';
 import 'package:florista/screens/AdditionalFeaturesScreen/ProfileDetailScreens.dart';
 import 'package:florista/screens/Store/AllStoreScreen.dart';
@@ -36,7 +35,7 @@ class _FavoriteStoreScreenState extends State<FavoriteStoreScreen> {
   }
 
   void _onItemTapped(int index) {
-    if (index == 2) return; // Sudah di halaman Favorite
+    if (index == 2) return;
 
     if (index == 0) {
       Navigator.of(context).popUntil((route) => route.isFirst); // Balik ke Home

@@ -1,7 +1,7 @@
 import 'dart:convert';
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
-import '../models/ProductModel.dart';
+import 'package:florista/models/ProductModel.dart';
 
 class ProductCard extends StatelessWidget {
   final ProductModel product;

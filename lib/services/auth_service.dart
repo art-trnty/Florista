@@ -18,7 +18,6 @@ class AuthService {
     return false;
   }
 
-  // 🔄 Simpan URL gambar profil ke Firestore
   static Future<void> updateProfilePicture(String imageUrl) async {
     final user = FirebaseAuth.instance.currentUser;
     if (user != null) {
@@ -28,7 +27,6 @@ class AuthService {
     }
   }
 
-  // 🔍 Ambil URL gambar profil dari Firestore
   static Future<String> getProfilePicture() async {
     final user = FirebaseAuth.instance.currentUser;
     if (user != null) {
@@ -45,6 +43,5 @@ class AuthService {
     return "";
   }
 
-  // Tambahan getter untuk UID sekarang
   static String? get currentUserUid => FirebaseAuth.instance.currentUser?.uid;
 }

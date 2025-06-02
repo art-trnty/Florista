@@ -63,8 +63,7 @@ class ProductGrid extends StatelessWidget {
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
           gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
             crossAxisCount: 2,
-            childAspectRatio:
-                1.2, // <--- Ini kunci utama agar card tidak terlalu tinggi
+            childAspectRatio: 1.2,
             mainAxisSpacing: 12,
             crossAxisSpacing: 12,
           ),

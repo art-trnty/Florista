@@ -1,5 +1,4 @@
-// Tambahkan ini di import
-import 'dart:convert'; // untuk base64Decode
+import 'dart:convert';
 import 'package:shimmer/shimmer.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:florista/screens/Store/FavoriteStoreScreen.dart';
@@ -69,7 +68,7 @@ class _HomeScreenState extends State<HomeScreen> {
         MaterialPageRoute(builder: (context) => const ProfileDetailScreen()),
       ).then((_) {
         if (_currentUserUid != null) {
-          _loadProfileImage(_currentUserUid!); // Refresh setelah kembali
+          _loadProfileImage(_currentUserUid!);
         }
       });
     }

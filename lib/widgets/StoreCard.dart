@@ -1,8 +1,7 @@
 import 'dart:typed_data';
 import 'dart:convert';
-
 import 'package:flutter/material.dart';
-import '../models/StoreModel.dart';
+import 'package:florista/models/StoreModel.dart';
 
 class StoreCard extends StatelessWidget {
   final StoreModel store;
@@ -134,7 +133,6 @@ class StoreCard extends StatelessWidget {
 
                 const SizedBox(height: 4),
 
-                // Estimasi waktu dummy
                 const Row(
                   children: [
                     Icon(Icons.timer, size: 14, color: Colors.grey),
