@@ -1,3 +1,4 @@
+import 'dart:convert'; // untuk base64Decode
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:shimmer/shimmer.dart';
 import 'package:florista/models/ProductModel.dart';
@@ -102,13 +103,6 @@ class _HomeScreenState extends State<HomeScreen> {
     });
   }
 
-  Future<void> _loadProfileImage() async {
-    String imageUrl = await AuthService.getProfilePicture();
-    setState(() {
-      _profileImageUrl = imageUrl.isNotEmpty ? imageUrl : "assets/profile.jpg";
-    });
-  }
-
   void _addNewStore() async {
     if (_isAdmin) {
       final result = await Navigator.of(
@@ -140,6 +134,23 @@ class _HomeScreenState extends State<HomeScreen> {
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(SnackBar(content: Text("Gagal menghapus toko: $e")));
+    }
+  }
+
+  ImageProvider<Object> _getProfileImageProvider(String imageData) {
+    try {
+      if (imageData.startsWith("data:image")) {
+        final base64Str = imageData.split(',').last;
+        return MemoryImage(base64Decode(base64Str));
+      } else if (imageData.length > 100 && !imageData.contains("assets/")) {
+        // Asumsikan ini murni base64
+        return MemoryImage(base64Decode(imageData));
+      } else {
+        return const AssetImage("assets/profile.jpg");
+      }
+    } catch (e) {
+      print("❌ Gagal decode base64: $e");
+      return const AssetImage("assets/profile.jpg");
     }
   }
 
@@ -212,11 +223,11 @@ class _HomeScreenState extends State<HomeScreen> {
                     GestureDetector(
                       onTap: () => _onItemTapped(3),
                       child: CircleAvatar(
-                        backgroundImage:
-                            _profileImageUrl.startsWith("http")
-                                ? NetworkImage(_profileImageUrl)
-                                : AssetImage(_profileImageUrl) as ImageProvider,
                         radius: 20,
+                        backgroundColor: Colors.grey.shade200,
+                        backgroundImage: _getProfileImageProvider(
+                          _profileImageUrl,
+                        ),
                       ),
                     ),
                   ],

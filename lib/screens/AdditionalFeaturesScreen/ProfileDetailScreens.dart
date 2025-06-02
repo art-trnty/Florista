@@ -19,11 +19,48 @@ class _ProfileDetailScreenState extends State<ProfileDetailScreen> {
   late final DocumentReference userDocRef;
   String? photoBase64;
 
+  late Map<String, dynamic> userData;
+
   @override
   void initState() {
     super.initState();
     userDocRef = FirebaseFirestore.instance.collection('users').doc(user!.uid);
-    _loadProfileImage();
+    _loadUserData();
+  }
+
+  Future<void> _loadUserData() async {
+    final doc = await userDocRef.get();
+    final data = doc.data() as Map<String, dynamic>;
+    setState(() {
+      userData = data;
+      photoBase64 = data['photoBase64']; // Ini yang benar
+    });
+  }
+
+  Future<void> _pickImage(ImageSource source) async {
+    final picker = ImagePicker();
+    final pickedImage = await picker.pickImage(source: source);
+
+    if (pickedImage != null) {
+      final bytes =
+          await pickedImage.readAsBytes(); // Mengambil byte dari gambar
+      final base64Image = base64Encode(bytes); // Ubah jadi Base64
+
+      try {
+        await userDocRef.update({
+          'photoBase64': base64Image,
+        }); // Simpan ke Firestore
+        print('Photo updated in Firestore.');
+
+        setState(() {
+          photoBase64 = base64Image; // Simpan lokal untuk tampilan UI
+        });
+      } catch (e) {
+        print('Error updating photo: $e');
+      }
+    } else {
+      print('No image selected.');
+    }
   }
 
   Future<void> _loadProfileImage() async {
@@ -35,19 +72,36 @@ class _ProfileDetailScreenState extends State<ProfileDetailScreen> {
   }
 
   Future<void> _changeProfileImage() async {
-    final picker = ImagePicker();
-    final pickedImage = await picker.pickImage(source: ImageSource.gallery);
-
-    if (pickedImage != null) {
-      final bytes = await File(pickedImage.path).readAsBytes();
-      final base64Image = base64Encode(bytes);
-
-      await userDocRef.update({'photoBase64': base64Image});
-
-      setState(() {
-        photoBase64 = base64Image;
-      });
-    }
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) {
+        return SafeArea(
+          child: Wrap(
+            children: [
+              ListTile(
+                leading: const Icon(Icons.camera_alt),
+                title: const Text('Ambil dari Kamera'),
+                onTap: () {
+                  Navigator.pop(context);
+                  _pickImage(ImageSource.camera);
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.photo_library),
+                title: const Text('Pilih dari Galeri'),
+                onTap: () {
+                  Navigator.pop(context);
+                  _pickImage(ImageSource.gallery);
+                },
+              ),
+            ],
+          ),
+        );
+      },
+    );
   }
 
   void _logout() async {
@@ -121,6 +175,7 @@ class _ProfileDetailScreenState extends State<ProfileDetailScreen> {
                             photoBase64 != null
                                 ? MemoryImage(base64Decode(photoBase64!))
                                 : null,
+
                         child:
                             (photoBase64 == null)
                                 ? Text(
