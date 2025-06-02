@@ -1,39 +1,84 @@
 import 'dart:convert';
-import 'package:florista/models/StoreModel.dart';
-import 'package:florista/screens/Store/StoreDetailScreen.dart';
-import 'package:flutter/material.dart';
 import 'dart:typed_data';
 
-class FavoriteStoreScreen extends StatelessWidget {
+import 'package:florista/models/StoreModel.dart';
+import 'package:florista/screens/AdditionalFeaturesScreen/ProfileDetailScreens.dart';
+import 'package:florista/screens/Store/AllStoreScreen.dart';
+import 'package:florista/screens/Store/StoreDetailScreen.dart';
+import 'package:flutter/material.dart';
+
+class FavoriteStoreScreen extends StatefulWidget {
   final List<String> favoriteStoreIds;
   final List<StoreModel> allStores;
+  final String? currentUserUid;
 
   const FavoriteStoreScreen({
     super.key,
     required this.favoriteStoreIds,
     required this.allStores,
+    this.currentUserUid,
   });
+
+  @override
+  State<FavoriteStoreScreen> createState() => _FavoriteStoreScreenState();
+}
+
+class _FavoriteStoreScreenState extends State<FavoriteStoreScreen> {
+  int _selectedIndex = 2;
 
   Uint8List? decodeBase64Image(String? base64String) {
     if (base64String == null || base64String.isEmpty) return null;
     try {
-      return base64Decode(base64String);
+      return base64Decode(base64String.split(',').last);
     } catch (e) {
       return null;
+    }
+  }
+
+  void _onItemTapped(int index) {
+    if (index == 2) return; // Sudah di halaman Favorite
+
+    if (index == 0) {
+      Navigator.of(context).popUntil((route) => route.isFirst); // Balik ke Home
+    } else if (index == 3) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => const ProfileDetailScreen()),
+      );
+    } else if (index == 1) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => const AllStoresScreen()),
+      );
     }
   }
 
   @override
   Widget build(BuildContext context) {
     final favoriteStores =
-        allStores
-            .where((store) => favoriteStoreIds.contains(store.id))
+        widget.allStores
+            .where((store) => widget.favoriteStoreIds.contains(store.id))
             .toList();
 
     return Scaffold(
       appBar: AppBar(
         title: const Text("Toko Favorit"),
         backgroundColor: Colors.green[700],
+      ),
+      bottomNavigationBar: BottomNavigationBar(
+        selectedItemColor: Colors.green,
+        unselectedItemColor: Colors.grey,
+        currentIndex: _selectedIndex,
+        onTap: _onItemTapped,
+        items: const [
+          BottomNavigationBarItem(icon: Icon(Icons.home), label: "Home"),
+          BottomNavigationBarItem(icon: Icon(Icons.search), label: "Search"),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.favorite),
+            label: "Favorite",
+          ),
+          BottomNavigationBarItem(icon: Icon(Icons.person), label: "Profil"),
+        ],
       ),
       body:
           favoriteStores.isEmpty
@@ -67,7 +112,6 @@ class FavoriteStoreScreen extends StatelessWidget {
                         padding: const EdgeInsets.all(12),
                         child: Row(
                           children: [
-                            // Gambar toko dari Base64
                             ClipRRect(
                               borderRadius: BorderRadius.circular(12),
                               child:
@@ -89,7 +133,6 @@ class FavoriteStoreScreen extends StatelessWidget {
                                       ),
                             ),
                             const SizedBox(width: 12),
-                            // Info toko
                             Expanded(
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,

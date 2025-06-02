@@ -330,11 +330,28 @@ class _HomeScreenState extends State<HomeScreen> {
                                   backgroundColor: Colors.grey,
                                 ),
                               )
-                              : CircleAvatar(
-                                radius: 20,
-                                backgroundColor: Colors.grey.shade200,
-                                backgroundImage: _getProfileImageProvider(
-                                  _profileImageUrl,
+                              : Container(
+                                padding: const EdgeInsets.all(2),
+                                decoration: BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  border: Border.all(
+                                    color: Colors.green,
+                                    width: 2,
+                                  ),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: Colors.black.withOpacity(0.1),
+                                      blurRadius: 4,
+                                      offset: const Offset(0, 2),
+                                    ),
+                                  ],
+                                ),
+                                child: CircleAvatar(
+                                  radius: 20,
+                                  backgroundColor: Colors.grey.shade200,
+                                  backgroundImage: _getProfileImageProvider(
+                                    _profileImageUrl,
+                                  ),
                                 ),
                               ),
                     ),
