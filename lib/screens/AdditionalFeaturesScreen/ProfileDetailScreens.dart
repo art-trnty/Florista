@@ -4,6 +4,8 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:florista/screens/SignInScreen.dart';
+import 'package:florista/screens/Store/AllStoreScreen.dart';
+import 'package:florista/screens/Store/FavoriteStoreScreen.dart'; // Pastikan path sesuai
 
 class ProfileDetailScreen extends StatefulWidget {
   const ProfileDetailScreen({super.key});
@@ -14,6 +16,7 @@ class ProfileDetailScreen extends StatefulWidget {
 
 class _ProfileDetailScreenState extends State<ProfileDetailScreen> {
   bool _isLoading = false;
+  int _selectedIndex = 3;
 
   final user = FirebaseAuth.instance.currentUser;
   late final DocumentReference userDocRef;
@@ -48,7 +51,6 @@ class _ProfileDetailScreenState extends State<ProfileDetailScreen> {
 
     if (pickedImage != null) {
       setState(() => _isLoading = true);
-
       final bytes = await pickedImage.readAsBytes();
       final base64Image = base64Encode(bytes);
 
@@ -67,8 +69,6 @@ class _ProfileDetailScreenState extends State<ProfileDetailScreen> {
       } finally {
         setState(() => _isLoading = false);
       }
-    } else {
-      print('No image selected.');
     }
   }
 
@@ -134,6 +134,32 @@ class _ProfileDetailScreenState extends State<ProfileDetailScreen> {
     }
   }
 
+  void _onItemTapped(int index) {
+    if (index == 3) return; // Sudah di halaman Profil
+    if (index == 0) {
+      Navigator.of(
+        context,
+      ).popUntil((route) => route.isFirst); // Kembali ke Home
+    } else if (index == 1) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => const AllStoresScreen()),
+      );
+    } else if (index == 2) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder:
+              (context) => FavoriteStoreScreen(
+                favoriteStoreIds: const [], // Ganti dengan data nyata
+                allStores: const [], // Ganti dengan data nyata
+                currentUserUid: user?.uid,
+              ),
+        ),
+      );
+    }
+  }
+
   Widget _buildProfileItem(IconData icon, String title, String subtitle) {
     return Card(
       elevation: 3,
@@ -165,6 +191,21 @@ class _ProfileDetailScreenState extends State<ProfileDetailScreen> {
             tooltip: 'Logout',
             onPressed: _logout,
           ),
+        ],
+      ),
+      bottomNavigationBar: BottomNavigationBar(
+        selectedItemColor: Colors.green,
+        unselectedItemColor: Colors.grey,
+        currentIndex: _selectedIndex,
+        onTap: _onItemTapped,
+        items: const [
+          BottomNavigationBarItem(icon: Icon(Icons.home), label: "Home"),
+          BottomNavigationBarItem(icon: Icon(Icons.search), label: "Search"),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.favorite),
+            label: "Favorite",
+          ),
+          BottomNavigationBarItem(icon: Icon(Icons.person), label: "Profil"),
         ],
       ),
       body: Container(
