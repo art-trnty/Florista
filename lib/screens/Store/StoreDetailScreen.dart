@@ -1,5 +1,7 @@
 import 'dart:convert';
+import 'package:florista/screens/Store/EditStoreScreen.dart';
 import 'package:florista/widgets/ProductGrid.dart';
+import 'package:florista/widgets/StoreBiodata.dart';
 import 'package:florista/widgets/StoreHeader.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -33,21 +35,35 @@ class _StoreDetailScreenState extends State<StoreDetailScreen> {
         title: const Text("Detail Store"),
         backgroundColor: Colors.green,
         actions: [
-          if (isOwner && selectedProductIds.isNotEmpty)
+          if (isOwner) ...[
             IconButton(
-              icon:
-                  isDeleting
-                      ? const SizedBox(
-                        width: 24,
-                        height: 24,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          color: Colors.white,
-                        ),
-                      )
-                      : const Icon(Icons.delete_forever),
-              onPressed: isDeleting ? null : _deleteSelectedProducts,
+              icon: const Icon(Icons.edit),
+              tooltip: 'Edit Biodata Toko',
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => EditStoreScreen(store: widget.store),
+                  ),
+                );
+              },
             ),
+            if (selectedProductIds.isNotEmpty)
+              IconButton(
+                icon:
+                    isDeleting
+                        ? const SizedBox(
+                          width: 24,
+                          height: 24,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: Colors.white,
+                          ),
+                        )
+                        : const Icon(Icons.delete_forever),
+                onPressed: isDeleting ? null : _deleteSelectedProducts,
+              ),
+          ],
         ],
       ),
       body: Column(
@@ -82,8 +98,8 @@ class _StoreDetailScreenState extends State<StoreDetailScreen> {
                       indicatorColor: Colors.green,
                       tabs: [
                         Tab(text: 'Product'),
-                        Tab(text: 'Discount'),
-                        Tab(text: 'Reviews'),
+                        Tab(text: 'Reviews'), // dulu "Discount"
+                        Tab(text: 'Biodata Toko'), // dulu "Reviews"
                       ],
                     ),
                   ),
@@ -103,8 +119,12 @@ class _StoreDetailScreenState extends State<StoreDetailScreen> {
                             });
                           },
                         ),
-                        const Center(child: Text("No discount available.")),
-                        const Center(child: Text("No reviews yet.")),
+                        const Center(
+                          child: Text("No reviews yet."),
+                        ), // Dummy Reviews
+                        StoreBiodata(
+                          storeId: widget.store.id,
+                        ), // Komponen biodata toko
                       ],
                     ),
                   ),

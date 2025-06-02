@@ -19,6 +19,8 @@ class _EditStoreScreenState extends State<EditStoreScreen> {
   late TextEditingController _nameController;
   late TextEditingController _descriptionController;
   late TextEditingController _addressController;
+  late TextEditingController _emailController;
+  late TextEditingController _phoneController;
 
   String? _imageBase64;
   bool _isLoading = false;
@@ -31,6 +33,8 @@ class _EditStoreScreenState extends State<EditStoreScreen> {
       text: widget.store.description,
     );
     _addressController = TextEditingController(text: widget.store.address);
+    _emailController = TextEditingController(text: widget.store.email ?? '');
+    _phoneController = TextEditingController(text: widget.store.phone ?? '');
     _imageBase64 = widget.store.imageBase64;
   }
 
@@ -39,6 +43,8 @@ class _EditStoreScreenState extends State<EditStoreScreen> {
     _nameController.dispose();
     _descriptionController.dispose();
     _addressController.dispose();
+    _emailController.dispose();
+    _phoneController.dispose();
     super.dispose();
   }
 
@@ -48,7 +54,7 @@ class _EditStoreScreenState extends State<EditStoreScreen> {
 
     if (pickedFile != null) {
       try {
-        final bytes = await pickedFile.readAsBytes(); // ✅ lebih universal
+        final bytes = await pickedFile.readAsBytes();
         final base64Image = base64Encode(bytes);
 
         await FirebaseFirestore.instance
@@ -86,13 +92,15 @@ class _EditStoreScreenState extends State<EditStoreScreen> {
             'name': _nameController.text.trim(),
             'description': _descriptionController.text.trim(),
             'address': _addressController.text.trim(),
+            'email': _emailController.text.trim(),
+            'phone': _phoneController.text.trim(),
             'imageBase64': _imageBase64,
           });
 
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Toko berhasil diperbarui.')),
       );
-      Navigator.pop(context);
+      Navigator.pop(context, true); // kembali dengan sinyal sukses
     } catch (e) {
       ScaffoldMessenger.of(
         context,
@@ -106,20 +114,6 @@ class _EditStoreScreenState extends State<EditStoreScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final imageWidget =
-        _imageBase64 != null
-            ? Image.memory(
-              base64Decode(_imageBase64!),
-              height: 160,
-              width: double.infinity,
-              fit: BoxFit.cover,
-            )
-            : Container(
-              height: 160,
-              alignment: Alignment.center,
-              child: const CircularProgressIndicator(),
-            );
-
     return Scaffold(
       appBar: AppBar(
         title: const Text('Edit Toko'),
@@ -157,7 +151,6 @@ class _EditStoreScreenState extends State<EditStoreScreen> {
                               child: const CircularProgressIndicator(),
                             ),
                   ),
-
                   Positioned(
                     right: 8,
                     bottom: 8,
@@ -203,6 +196,18 @@ class _EditStoreScreenState extends State<EditStoreScreen> {
                         value == null || value.isEmpty
                             ? 'Alamat tidak boleh kosong'
                             : null,
+              ),
+              const SizedBox(height: 12),
+              TextFormField(
+                controller: _emailController,
+                decoration: const InputDecoration(labelText: 'Email Toko'),
+                keyboardType: TextInputType.emailAddress,
+              ),
+              const SizedBox(height: 12),
+              TextFormField(
+                controller: _phoneController,
+                decoration: const InputDecoration(labelText: 'Nomor HP Toko'),
+                keyboardType: TextInputType.phone,
               ),
               const SizedBox(height: 24),
               ElevatedButton.icon(
