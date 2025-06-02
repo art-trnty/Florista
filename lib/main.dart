@@ -77,7 +77,7 @@ class WelcomeScreen extends StatelessWidget {
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 20),
               child: Image.asset(
-                'assets/images/welcome_illustration.png', // kamu perlu siapkan ilustrasinya
+                'assets/Additional/NatureBloom.jpg', // kamu perlu siapkan ilustrasinya
                 height: 250,
               ),
             ),
