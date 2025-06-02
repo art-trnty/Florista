@@ -135,11 +135,9 @@ class _ProfileDetailScreenState extends State<ProfileDetailScreen> {
   }
 
   void _onItemTapped(int index) {
-    if (index == 3) return; // Sudah di halaman Profil
+    if (index == 3) return;
     if (index == 0) {
-      Navigator.of(
-        context,
-      ).popUntil((route) => route.isFirst); // Kembali ke Home
+      Navigator.of(context).popUntil((route) => route.isFirst);
     } else if (index == 1) {
       Navigator.push(
         context,
@@ -151,8 +149,8 @@ class _ProfileDetailScreenState extends State<ProfileDetailScreen> {
         MaterialPageRoute(
           builder:
               (context) => FavoriteStoreScreen(
-                favoriteStoreIds: const [], // Ganti dengan data nyata
-                allStores: const [], // Ganti dengan data nyata
+                favoriteStoreIds: const [],
+                allStores: const [],
                 currentUserUid: user?.uid,
               ),
         ),

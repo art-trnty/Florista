@@ -1,10 +1,8 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:florista/screens/AdditionalFeaturesScreen/ProfileDetailScreens.dart';
 import 'package:florista/screens/SignInScreen.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:florista/screens/HomeScreen.dart';
 
 class SignUpScreen extends StatefulWidget {
   const SignUpScreen({super.key});
@@ -45,7 +43,6 @@ class SignUpScreenState extends State<SignUpScreen> {
     return Scaffold(
       body: Stack(
         children: [
-          // Background gradient
           Container(
             decoration: const BoxDecoration(
               gradient: LinearGradient(
@@ -370,9 +367,6 @@ class SignUpScreenState extends State<SignUpScreen> {
 
   void _signUp() async {
     if (!_formKey.currentState!.validate()) return;
-
-    // Cek apakah username sudah ada
-
     final email = _emailController.text.trim();
     final password = _passwordController.text;
     final name = _nameController.text.trim();

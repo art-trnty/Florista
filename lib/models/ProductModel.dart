@@ -34,7 +34,6 @@ class ProductModel {
     };
   }
 
-  /// Create model from Firestore document
   factory ProductModel.fromMap(String id, Map<String, dynamic> map) {
     return ProductModel(
       id: id,
