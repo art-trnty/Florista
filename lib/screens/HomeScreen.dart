@@ -1,5 +1,6 @@
 // Tambahkan ini di import
 import 'dart:convert'; // untuk base64Decode
+import 'package:shimmer/shimmer.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:florista/screens/Store/FavoriteStoreScreen.dart';
 import 'package:flutter/material.dart';
@@ -23,6 +24,7 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   String _address = "Memuat lokasi...";
   bool _isAdmin = false;
+  bool _isProfileLoading = true;
   String? _currentUserUid;
   String _profileImageUrl = "";
   List<ProductModel> _products = [];
@@ -65,7 +67,11 @@ class _HomeScreenState extends State<HomeScreen> {
       Navigator.push(
         context,
         MaterialPageRoute(builder: (context) => const ProfileDetailScreen()),
-      );
+      ).then((_) {
+        if (_currentUserUid != null) {
+          _loadProfileImage(_currentUserUid!); // Refresh setelah kembali
+        }
+      });
     }
 
     setState(() {
@@ -103,20 +109,26 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
-  Future<void> _loadProfileImage(String uid) async {
+  void _loadProfileImage(String uid) async {
+    setState(() {
+      _isProfileLoading = true;
+    });
+
     try {
-      final snapshot =
+      final doc =
           await FirebaseFirestore.instance.collection('users').doc(uid).get();
-      if (snapshot.exists) {
-        final data = snapshot.data();
-        if (data != null && data.containsKey('profileImage')) {
-          setState(() {
-            _profileImageUrl = data['profileImage'] ?? '';
-          });
-        }
+      final data = doc.data();
+      if (data != null && data['photoBase64'] != null) {
+        setState(() {
+          _profileImageUrl = data['photoBase64'];
+        });
       }
     } catch (e) {
-      debugPrint("Gagal memuat foto profil: $e");
+      debugPrint("Error loading profile image: $e");
+    } finally {
+      setState(() {
+        _isProfileLoading = false;
+      });
     }
   }
 
@@ -223,18 +235,15 @@ class _HomeScreenState extends State<HomeScreen> {
 
   ImageProvider<Object> _getProfileImageProvider(String imageData) {
     try {
-      if (imageData.startsWith("data:image")) {
-        final base64Str = imageData.split(',').last;
+      if (imageData.startsWith("data:image") || imageData.length > 100) {
+        final base64Str =
+            imageData.contains(',') ? imageData.split(',').last : imageData;
         return MemoryImage(base64Decode(base64Str));
-      } else if (imageData.length > 100 && !imageData.contains("assets/")) {
-        return MemoryImage(base64Decode(imageData));
-      } else {
-        return const AssetImage("assets/profile.jpg");
       }
     } catch (e) {
       debugPrint("Gagal decode base64: $e");
-      return const AssetImage("assets/profile.jpg");
     }
+    return const AssetImage("assets/profile.jpg");
   }
 
   @override
@@ -282,13 +291,13 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         ),
         child: SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Header lokasi + profil
-                Row(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Header lokasi + profil
+              Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Row(
@@ -309,120 +318,136 @@ class _HomeScreenState extends State<HomeScreen> {
                         ),
                       ],
                     ),
-                    Row(
-                      children: [
-                        GestureDetector(
-                          onTap: () => _onItemTapped(3),
-                          child: CircleAvatar(
-                            radius: 20,
-                            backgroundColor: Colors.grey.shade200,
-                            backgroundImage: _getProfileImageProvider(
-                              _profileImageUrl,
+                    GestureDetector(
+                      onTap: () => _onItemTapped(3),
+                      child:
+                          _isProfileLoading
+                              ? Shimmer.fromColors(
+                                baseColor: Colors.grey.shade300,
+                                highlightColor: Colors.grey.shade100,
+                                child: const CircleAvatar(
+                                  radius: 20,
+                                  backgroundColor: Colors.grey,
+                                ),
+                              )
+                              : CircleAvatar(
+                                radius: 20,
+                                backgroundColor: Colors.grey.shade200,
+                                backgroundImage: _getProfileImageProvider(
+                                  _profileImageUrl,
+                                ),
+                              ),
+                    ),
+                  ],
+                ),
+              ),
+
+              // Konten scrollable
+              Expanded(
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(20),
+                        child: Image.asset(
+                          'assets/Additional/Flowers.jpg',
+                          height: 180,
+                          width: double.infinity,
+                          fit: BoxFit.cover,
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      const Text(
+                        'Temukan Toko Tanaman Hias Favorit Anda',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.green,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      const Text(
+                        'Aplikasi ini membantu Anda menemukan berbagai toko tanaman hias terbaik di kota. Jelajahi dan buat taman Anda lebih hidup!',
+                        style: TextStyle(fontSize: 14, color: Colors.black87),
+                      ),
+                      const SizedBox(height: 24),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(14),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.grey.withOpacity(0.25),
+                              blurRadius: 6,
+                              offset: const Offset(0, 2),
+                            ),
+                          ],
+                        ),
+                        child: TextField(
+                          controller: _searchController,
+                          onChanged: (value) {
+                            setState(() {
+                              _searchKeyword = value.toLowerCase();
+                            });
+                          },
+                          decoration: const InputDecoration(
+                            icon: Icon(Icons.search, color: Colors.green),
+                            border: InputBorder.none,
+                            hintText: "Cari toko tanaman hias...",
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 24),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          const Text(
+                            "Toko Tanaman Hias",
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 18,
+                              color: Colors.green,
                             ),
                           ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-
-                const SizedBox(height: 16),
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(20),
-                  child: Image.asset(
-                    'assets/Additional/Flowers.jpg',
-                    height: 180,
-                    width: double.infinity,
-                    fit: BoxFit.cover,
-                  ),
-                ),
-                const SizedBox(height: 16),
-                const Text(
-                  'Temukan Toko Tanaman Hias Favorit Anda',
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.green,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                const Text(
-                  'Aplikasi ini membantu Anda menemukan berbagai toko tanaman hias terbaik di kota. Jelajahi dan buat taman Anda lebih hidup!',
-                  style: TextStyle(fontSize: 14, color: Colors.black87),
-                ),
-                const SizedBox(height: 24),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(14),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.grey.withOpacity(0.25),
-                        blurRadius: 6,
-                        offset: const Offset(0, 2),
-                      ),
-                    ],
-                  ),
-                  child: TextField(
-                    controller: _searchController,
-                    onChanged: (value) {
-                      setState(() {
-                        _searchKeyword = value.toLowerCase();
-                      });
-                    },
-                    decoration: const InputDecoration(
-                      icon: Icon(Icons.search, color: Colors.green),
-                      border: InputBorder.none,
-                      hintText: "Cari toko tanaman hias...",
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 24),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    const Text(
-                      "Toko Tanaman Hias",
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 18,
-                        color: Colors.green,
-                      ),
-                    ),
-                    GestureDetector(
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => const AllStoresScreen(),
+                          GestureDetector(
+                            onTap: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => const AllStoresScreen(),
+                                ),
+                              );
+                            },
+                            child: const Text(
+                              "Lihat Semua",
+                              style: TextStyle(
+                                color: Colors.green,
+                                fontWeight: FontWeight.w600,
+                                fontSize: 14,
+                              ),
+                            ),
                           ),
-                        );
-                      },
-                      child: const Text(
-                        "Lihat Semua",
-                        style: TextStyle(
-                          color: Colors.green,
-                          fontWeight: FontWeight.w600,
-                          fontSize: 14,
-                        ),
+                        ],
                       ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 12),
-                Expanded(
-                  child:
+                      const SizedBox(height: 12),
                       _stores.isEmpty
                           ? const Center(child: CircularProgressIndicator())
                           : filteredStores.isEmpty
                           ? const Center(
-                            child: Text(
-                              "Toko tidak ditemukan.",
-                              style: TextStyle(color: Colors.grey),
+                            child: Padding(
+                              padding: EdgeInsets.all(20),
+                              child: Text(
+                                "Toko tidak ditemukan.",
+                                style: TextStyle(color: Colors.grey),
+                              ),
                             ),
                           )
                           : GridView.builder(
+                            shrinkWrap: true,
+                            physics: const NeverScrollableScrollPhysics(),
                             padding: const EdgeInsets.only(top: 8),
                             itemCount: filteredStores.length,
                             gridDelegate:
@@ -436,7 +461,7 @@ class _HomeScreenState extends State<HomeScreen> {
                               final store = filteredStores[index];
                               final isFavorite = favoriteStoreIds.contains(
                                 store.id,
-                              ); // ✅ tambahkan ini
+                              );
 
                               return GestureDetector(
                                 onTap: () {
@@ -451,8 +476,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                 child: StoreCard(
                                   store: store,
                                   currentUserUid: _currentUserUid,
-                                  isFavorite:
-                                      isFavorite, // ✅ kirim ke StoreCard
+                                  isFavorite: isFavorite,
                                   onToggleFavorite: () {
                                     setState(() {
                                       if (isFavorite) {
@@ -473,9 +497,11 @@ class _HomeScreenState extends State<HomeScreen> {
                               );
                             },
                           ),
+                    ],
+                  ),
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
         ),
       ),
