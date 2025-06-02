@@ -8,20 +8,22 @@ class StoreCard extends StatelessWidget {
   final StoreModel store;
   final String? currentUserUid;
   final VoidCallback? onDelete;
-  final VoidCallback? onFavorite; // ✅ Tambahan
+  final VoidCallback? onToggleFavorite;
+  final bool isFavorite;
 
   const StoreCard({
     super.key,
     required this.store,
     this.currentUserUid,
     this.onDelete,
-    this.onFavorite, // ✅ Tambahan
+    this.onToggleFavorite,
+    this.isFavorite = false,
   });
 
   @override
   Widget build(BuildContext context) {
-    final imageBytes = base64Decode(store.imageBase64);
-    final isOwner = currentUserUid == store.owner;
+    final Uint8List imageBytes = base64Decode(store.imageBase64);
+    final bool isOwner = currentUserUid == store.owner;
 
     return Container(
       width: 240,
@@ -29,7 +31,7 @@ class StoreCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
-        boxShadow: [BoxShadow(color: Colors.black12, blurRadius: 4)],
+        boxShadow: const [BoxShadow(color: Colors.black12, blurRadius: 4)],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -52,7 +54,7 @@ class StoreCard extends StatelessWidget {
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Nama dan tombol aksi
+                // Nama toko dan aksi
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
@@ -63,59 +65,53 @@ class StoreCard extends StatelessWidget {
                         overflow: TextOverflow.ellipsis,
                       ),
                     ),
-
-                    // ✅ Tampilkan ikon sesuai role
-                    isOwner
-                        ? IconButton(
-                          icon: const Icon(
-                            Icons.delete,
-                            color: Colors.red,
-                            size: 20,
-                          ),
-                          onPressed: () async {
-                            final confirm = await showDialog<bool>(
-                              context: context,
-                              builder:
-                                  (_) => AlertDialog(
-                                    title: const Text("Hapus Toko"),
-                                    content: const Text(
-                                      "Apakah Anda yakin ingin menghapus toko ini?",
-                                    ),
-                                    actions: [
-                                      TextButton(
-                                        onPressed:
-                                            () => Navigator.pop(context, false),
-                                        child: const Text("Batal"),
-                                      ),
-                                      TextButton(
-                                        onPressed:
-                                            () => Navigator.pop(context, true),
-                                        child: const Text(
-                                          "Hapus",
-                                          style: TextStyle(color: Colors.red),
-                                        ),
-                                      ),
-                                    ],
+                    IconButton(
+                      icon: Icon(
+                        isOwner
+                            ? Icons.delete
+                            : (isFavorite
+                                ? Icons.favorite
+                                : Icons.favorite_border),
+                        color: isOwner ? Colors.red : Colors.green,
+                        size: 20,
+                      ),
+                      onPressed: () async {
+                        if (isOwner) {
+                          final confirm = await showDialog<bool>(
+                            context: context,
+                            builder:
+                                (_) => AlertDialog(
+                                  title: const Text("Hapus Toko"),
+                                  content: const Text(
+                                    "Apakah Anda yakin ingin menghapus toko ini?",
                                   ),
-                            );
-
-                            if (confirm == true && onDelete != null) {
-                              onDelete!();
-                            }
-                          },
-                        )
-                        : IconButton(
-                          icon: const Icon(
-                            Icons.favorite_border,
-                            color: Colors.green,
-                            size: 20,
-                          ),
-                          onPressed: () {
-                            if (onFavorite != null) {
-                              onFavorite!();
-                            }
-                          },
-                        ),
+                                  actions: [
+                                    TextButton(
+                                      onPressed:
+                                          () => Navigator.pop(context, false),
+                                      child: const Text("Batal"),
+                                    ),
+                                    TextButton(
+                                      onPressed:
+                                          () => Navigator.pop(context, true),
+                                      child: const Text(
+                                        "Hapus",
+                                        style: TextStyle(color: Colors.red),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                          );
+                          if (confirm == true && onDelete != null) {
+                            onDelete!();
+                          }
+                        } else {
+                          if (onToggleFavorite != null) {
+                            onToggleFavorite!();
+                          }
+                        }
+                      },
+                    ),
                   ],
                 ),
 
@@ -139,8 +135,8 @@ class StoreCard extends StatelessWidget {
                 const SizedBox(height: 4),
 
                 // Estimasi waktu dummy
-                Row(
-                  children: const [
+                const Row(
+                  children: [
                     Icon(Icons.timer, size: 14, color: Colors.grey),
                     SizedBox(width: 4),
                     Text("10–15 mins", style: TextStyle(fontSize: 12)),

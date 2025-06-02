@@ -1,11 +1,12 @@
+// Tambahkan ini di import
 import 'dart:convert'; // untuk base64Decode
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:shimmer/shimmer.dart';
+import 'package:florista/screens/Store/FavoriteStoreScreen.dart';
+import 'package:flutter/material.dart';
 import 'package:florista/models/ProductModel.dart';
 import 'package:florista/models/StoreModel.dart';
 import 'package:florista/screens/Store/AllStoreScreen.dart';
 import 'package:florista/screens/Store/StoreDetailScreen.dart';
-import 'package:flutter/material.dart';
 import 'package:florista/screens/AdditionalFeaturesScreen/ProfileDetailScreens.dart';
 import 'package:florista/services/location_service.dart';
 import 'package:florista/services/auth_service.dart';
@@ -29,24 +30,37 @@ class _HomeScreenState extends State<HomeScreen> {
   int _selectedIndex = 0;
   final TextEditingController _searchController = TextEditingController();
   String _searchKeyword = "";
+  List<String> favoriteStoreIds = [];
 
   @override
   void initState() {
     super.initState();
     _loadLocation();
     _checkAdminStatus();
-    _loadProfileImage();
     _loadCurrentUserUid();
     _fetchStores();
     _fetchAllProducts();
+    _loadFavoriteStores();
   }
 
   void _onItemTapped(int index) {
     if (index == 2) {
-      Navigator.push(
-        context,
-        MaterialPageRoute(builder: (context) => const AllStoresScreen()),
-      );
+      if (_currentUserUid != null) {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder:
+                (context) => FavoriteStoreScreen(
+                  favoriteStoreIds: favoriteStoreIds,
+                  allStores: _stores,
+                ),
+          ),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("Data pengguna belum dimuat.")),
+        );
+      }
     } else if (index == 3) {
       Navigator.push(
         context,
@@ -60,9 +74,50 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   void _loadCurrentUserUid() {
+    final uid = AuthService.currentUserUid;
     setState(() {
-      _currentUserUid = AuthService.currentUserUid;
+      _currentUserUid = uid;
     });
+    if (uid != null) {
+      _loadProfileImage(uid);
+    }
+  }
+
+  Future<void> _loadFavoriteStores() async {
+    if (_currentUserUid == null) return;
+
+    try {
+      final snapshot =
+          await FirebaseFirestore.instance
+              .collection('users')
+              .doc(_currentUserUid)
+              .get();
+      final data = snapshot.data();
+      if (data != null && data.containsKey('favoriteStores')) {
+        setState(() {
+          favoriteStoreIds = List<String>.from(data['favoriteStores']);
+        });
+      }
+    } catch (e) {
+      debugPrint("Gagal memuat toko favorit: $e");
+    }
+  }
+
+  Future<void> _loadProfileImage(String uid) async {
+    try {
+      final snapshot =
+          await FirebaseFirestore.instance.collection('users').doc(uid).get();
+      if (snapshot.exists) {
+        final data = snapshot.data();
+        if (data != null && data.containsKey('profileImage')) {
+          setState(() {
+            _profileImageUrl = data['profileImage'] ?? '';
+          });
+        }
+      }
+    } catch (e) {
+      debugPrint("Gagal memuat foto profil: $e");
+    }
   }
 
   Future<void> _fetchStores() async {
@@ -79,21 +134,50 @@ class _HomeScreenState extends State<HomeScreen> {
   Future<void> _fetchAllProducts() async {
     final storeSnapshots =
         await FirebaseFirestore.instance.collection('stores').get();
+    List<ProductModel> loadedProducts = [];
+
     for (var storeDoc in storeSnapshots.docs) {
       final productsSnapshot =
           await storeDoc.reference.collection('products').get();
       for (var productDoc in productsSnapshot.docs) {
         final data = productDoc.data();
-        print("✅ Found Product in ${storeDoc.id}: $data");
+        final product = ProductModel.fromMap(productDoc.id, data);
+        loadedProducts.add(product);
       }
     }
+
+    setState(() {
+      _products = loadedProducts;
+    });
   }
 
   Future<void> _loadLocation() async {
-    String result = await LocationService.getCurrentAddress();
-    setState(() {
-      _address = result;
-    });
+    try {
+      String result = await LocationService.getCurrentAddress();
+      setState(() {
+        _address = result;
+      });
+    } catch (e) {
+      setState(() {
+        _address = "Gagal memuat lokasi";
+      });
+    }
+  }
+
+  static Future<void> toggleFavoriteStore(String userId, String storeId) async {
+    final userRef = FirebaseFirestore.instance.collection('users').doc(userId);
+    final snapshot = await userRef.get();
+    final data = snapshot.data();
+
+    final List favorites = data?['favoriteStores'] ?? [];
+
+    if (favorites.contains(storeId)) {
+      favorites.remove(storeId);
+    } else {
+      favorites.add(storeId);
+    }
+
+    await userRef.update({'favoriteStores': favorites});
   }
 
   Future<void> _checkAdminStatus() async {
@@ -143,13 +227,12 @@ class _HomeScreenState extends State<HomeScreen> {
         final base64Str = imageData.split(',').last;
         return MemoryImage(base64Decode(base64Str));
       } else if (imageData.length > 100 && !imageData.contains("assets/")) {
-        // Asumsikan ini murni base64
         return MemoryImage(base64Decode(imageData));
       } else {
         return const AssetImage("assets/profile.jpg");
       }
     } catch (e) {
-      print("❌ Gagal decode base64: $e");
+      debugPrint("Gagal decode base64: $e");
       return const AssetImage("assets/profile.jpg");
     }
   }
@@ -157,10 +240,13 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     final filteredStores =
-        _stores.where((store) {
-          final name = store.name.toLowerCase();
-          return name.contains(_searchKeyword);
-        }).toList();
+        _stores
+            .where(
+              (store) => store.name.toLowerCase().contains(
+                _searchKeyword.toLowerCase(),
+              ),
+            )
+            .toList();
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -180,7 +266,10 @@ class _HomeScreenState extends State<HomeScreen> {
         items: const [
           BottomNavigationBarItem(icon: Icon(Icons.home), label: "Home"),
           BottomNavigationBarItem(icon: Icon(Icons.search), label: "Search"),
-          BottomNavigationBarItem(icon: Icon(Icons.store), label: "Toko"),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.favorite),
+            label: "Favorite Store",
+          ),
           BottomNavigationBarItem(icon: Icon(Icons.person), label: "Profil"),
         ],
       ),
@@ -198,7 +287,7 @@ class _HomeScreenState extends State<HomeScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // 🔹 Header dengan lokasi & foto profil
+                // Header lokasi + profil
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
@@ -220,21 +309,24 @@ class _HomeScreenState extends State<HomeScreen> {
                         ),
                       ],
                     ),
-                    GestureDetector(
-                      onTap: () => _onItemTapped(3),
-                      child: CircleAvatar(
-                        radius: 20,
-                        backgroundColor: Colors.grey.shade200,
-                        backgroundImage: _getProfileImageProvider(
-                          _profileImageUrl,
+                    Row(
+                      children: [
+                        GestureDetector(
+                          onTap: () => _onItemTapped(3),
+                          child: CircleAvatar(
+                            radius: 20,
+                            backgroundColor: Colors.grey.shade200,
+                            backgroundImage: _getProfileImageProvider(
+                              _profileImageUrl,
+                            ),
+                          ),
                         ),
-                      ),
+                      ],
                     ),
                   ],
                 ),
-                const SizedBox(height: 16),
 
-                // 🔹 Banner Gambar
+                const SizedBox(height: 16),
                 ClipRRect(
                   borderRadius: BorderRadius.circular(20),
                   child: Image.asset(
@@ -245,8 +337,6 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                 ),
                 const SizedBox(height: 16),
-
-                // 🔹 Deskripsi Aplikasi
                 const Text(
                   'Temukan Toko Tanaman Hias Favorit Anda',
                   style: TextStyle(
@@ -260,10 +350,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   'Aplikasi ini membantu Anda menemukan berbagai toko tanaman hias terbaik di kota. Jelajahi dan buat taman Anda lebih hidup!',
                   style: TextStyle(fontSize: 14, color: Colors.black87),
                 ),
-
                 const SizedBox(height: 24),
-
-                // 🔹 Search Box
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 16),
                   decoration: BoxDecoration(
@@ -291,10 +378,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                   ),
                 ),
-
                 const SizedBox(height: 24),
-
-                // 🔹 Section Title
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
@@ -326,16 +410,11 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                   ],
                 ),
-
                 const SizedBox(height: 12),
-
-                // 🔹 Daftar toko (horizontal scroll)
                 Expanded(
                   child:
                       _stores.isEmpty
-                          ? Center(
-                            child: CircularProgressIndicator(),
-                          ) // contoh shimmer/loader
+                          ? const Center(child: CircularProgressIndicator())
                           : filteredStores.isEmpty
                           ? const Center(
                             child: Text(
@@ -355,6 +434,10 @@ class _HomeScreenState extends State<HomeScreen> {
                                 ),
                             itemBuilder: (context, index) {
                               final store = filteredStores[index];
+                              final isFavorite = favoriteStoreIds.contains(
+                                store.id,
+                              ); // ✅ tambahkan ini
+
                               return GestureDetector(
                                 onTap: () {
                                   Navigator.of(context).push(
@@ -368,6 +451,23 @@ class _HomeScreenState extends State<HomeScreen> {
                                 child: StoreCard(
                                   store: store,
                                   currentUserUid: _currentUserUid,
+                                  isFavorite:
+                                      isFavorite, // ✅ kirim ke StoreCard
+                                  onToggleFavorite: () {
+                                    setState(() {
+                                      if (isFavorite) {
+                                        favoriteStoreIds.remove(store.id);
+                                      } else {
+                                        favoriteStoreIds.add(store.id);
+                                      }
+                                    });
+                                    if (_currentUserUid != null) {
+                                      toggleFavoriteStore(
+                                        _currentUserUid!,
+                                        store.id,
+                                      );
+                                    }
+                                  },
                                   onDelete: () => _deleteStore(store.id),
                                 ),
                               );

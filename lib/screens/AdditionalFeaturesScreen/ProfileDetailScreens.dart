@@ -1,6 +1,4 @@
 import 'dart:convert';
-import 'dart:io';
-
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -15,26 +13,33 @@ class ProfileDetailScreen extends StatefulWidget {
 }
 
 class _ProfileDetailScreenState extends State<ProfileDetailScreen> {
+  bool _isLoading = false;
+
   final user = FirebaseAuth.instance.currentUser;
   late final DocumentReference userDocRef;
   String? photoBase64;
 
-  late Map<String, dynamic> userData;
-
   @override
   void initState() {
     super.initState();
-    userDocRef = FirebaseFirestore.instance.collection('users').doc(user!.uid);
-    _loadUserData();
+    if (user != null) {
+      userDocRef = FirebaseFirestore.instance
+          .collection('users')
+          .doc(user!.uid);
+    }
   }
 
-  Future<void> _loadUserData() async {
-    final doc = await userDocRef.get();
-    final data = doc.data() as Map<String, dynamic>;
-    setState(() {
-      userData = data;
-      photoBase64 = data['photoBase64']; // Ini yang benar
-    });
+  ImageProvider<Object> _getProfileImageProvider(String imageData) {
+    try {
+      if (imageData.startsWith("data:image") || imageData.length > 100) {
+        final base64Str =
+            imageData.contains(',') ? imageData.split(',').last : imageData;
+        return MemoryImage(base64Decode(base64Str));
+      }
+    } catch (e) {
+      debugPrint("Gagal decode base64: $e");
+    }
+    return const AssetImage("assets/profile.jpg");
   }
 
   Future<void> _pickImage(ImageSource source) async {
@@ -42,36 +47,32 @@ class _ProfileDetailScreenState extends State<ProfileDetailScreen> {
     final pickedImage = await picker.pickImage(source: source);
 
     if (pickedImage != null) {
-      final bytes =
-          await pickedImage.readAsBytes(); // Mengambil byte dari gambar
-      final base64Image = base64Encode(bytes); // Ubah jadi Base64
+      setState(() => _isLoading = true);
+
+      final bytes = await pickedImage.readAsBytes();
+      final base64Image = base64Encode(bytes);
 
       try {
-        await userDocRef.update({
-          'photoBase64': base64Image,
-        }); // Simpan ke Firestore
-        print('Photo updated in Firestore.');
-
+        await userDocRef.update({'photoBase64': base64Image});
         setState(() {
-          photoBase64 = base64Image; // Simpan lokal untuk tampilan UI
+          photoBase64 = base64Image;
         });
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Foto berhasil diperbarui')),
+        );
       } catch (e) {
-        print('Error updating photo: $e');
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Gagal menyimpan foto: $e')));
+      } finally {
+        setState(() => _isLoading = false);
       }
     } else {
       print('No image selected.');
     }
   }
 
-  Future<void> _loadProfileImage() async {
-    final doc = await userDocRef.get();
-    final data = doc.data() as Map<String, dynamic>;
-    setState(() {
-      photoBase64 = data['photoBase64'];
-    });
-  }
-
-  Future<void> _changeProfileImage() async {
+  void _changeProfileImage() {
     showModalBottomSheet(
       context: context,
       shape: const RoundedRectangleBorder(
@@ -104,12 +105,33 @@ class _ProfileDetailScreenState extends State<ProfileDetailScreen> {
     );
   }
 
-  void _logout() async {
-    await FirebaseAuth.instance.signOut();
-    Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(builder: (context) => const SignInScreen()),
+  Future<void> _logout() async {
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder:
+          (ctx) => AlertDialog(
+            title: const Text('Konfirmasi Logout'),
+            content: const Text('Apakah Anda yakin ingin logout?'),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(ctx, false),
+                child: const Text('Batal'),
+              ),
+              TextButton(
+                onPressed: () => Navigator.pop(ctx, true),
+                child: const Text('Logout'),
+              ),
+            ],
+          ),
     );
+
+    if (confirm == true) {
+      await FirebaseAuth.instance.signOut();
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => const SignInScreen()),
+      );
+    }
   }
 
   Widget _buildProfileItem(IconData icon, String title, String subtitle) {
@@ -127,6 +149,10 @@ class _ProfileDetailScreenState extends State<ProfileDetailScreen> {
 
   @override
   Widget build(BuildContext context) {
+    if (user == null) {
+      return const Scaffold(body: Center(child: Text('Pengguna belum login.')));
+    }
+
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
@@ -152,14 +178,24 @@ class _ProfileDetailScreenState extends State<ProfileDetailScreen> {
         child: FutureBuilder<DocumentSnapshot>(
           future: userDocRef.get(),
           builder: (context, snapshot) {
-            if (snapshot.connectionState == ConnectionState.waiting) {
+            if (snapshot.connectionState == ConnectionState.waiting ||
+                _isLoading) {
               return const Center(child: CircularProgressIndicator());
             }
+
             if (!snapshot.hasData || !snapshot.data!.exists) {
               return const Center(child: Text('Data profil tidak ditemukan.'));
             }
 
             final data = snapshot.data!.data() as Map<String, dynamic>;
+            final name = data['name'] ?? '-';
+            final firstInitial = name.isNotEmpty ? name[0].toUpperCase() : '-';
+
+            photoBase64 = data['photoBase64'];
+            final imageProvider =
+                (photoBase64 != null && photoBase64!.isNotEmpty)
+                    ? _getProfileImageProvider(photoBase64!)
+                    : null;
 
             return SingleChildScrollView(
               padding: const EdgeInsets.all(20.0),
@@ -171,18 +207,11 @@ class _ProfileDetailScreenState extends State<ProfileDetailScreen> {
                       CircleAvatar(
                         radius: 60,
                         backgroundColor: Colors.green.shade100,
-                        backgroundImage:
-                            photoBase64 != null
-                                ? MemoryImage(base64Decode(photoBase64!))
-                                : null,
-
+                        backgroundImage: imageProvider,
                         child:
-                            (photoBase64 == null)
+                            imageProvider == null
                                 ? Text(
-                                  data['name'] != null &&
-                                          data['name'].isNotEmpty
-                                      ? data['name'][0].toUpperCase()
-                                      : '-',
+                                  firstInitial,
                                   style: const TextStyle(
                                     fontSize: 40,
                                     color: Colors.green,
@@ -199,7 +228,7 @@ class _ProfileDetailScreenState extends State<ProfileDetailScreen> {
                   ),
                   const SizedBox(height: 16),
                   Text(
-                    data['name'] ?? '-',
+                    name,
                     style: const TextStyle(
                       fontSize: 22,
                       fontWeight: FontWeight.bold,

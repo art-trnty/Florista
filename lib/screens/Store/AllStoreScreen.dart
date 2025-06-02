@@ -15,6 +15,7 @@ class AllStoresScreen extends StatefulWidget {
 class _AllStoresScreenState extends State<AllStoresScreen>
     with SingleTickerProviderStateMixin {
   List<StoreModel> _stores = [];
+  Set<String> _favoriteStoreIds = {};
   String? _currentUserUid;
   late AnimationController _animationController;
 
@@ -27,6 +28,7 @@ class _AllStoresScreenState extends State<AllStoresScreen>
       duration: const Duration(milliseconds: 800),
     );
     _fetchStores();
+    _fetchFavoriteStores();
   }
 
   @override
@@ -45,6 +47,41 @@ class _AllStoresScreenState extends State<AllStoresScreen>
               .toList();
     });
     _animationController.forward();
+  }
+
+  Future<void> _fetchFavoriteStores() async {
+    final userDoc =
+        await FirebaseFirestore.instance
+            .collection('users')
+            .doc(_currentUserUid)
+            .get();
+
+    final List<dynamic> favoriteIds = userDoc.data()?['favoriteStoreIds'] ?? [];
+    setState(() {
+      _favoriteStoreIds = favoriteIds.cast<String>().toSet();
+    });
+  }
+
+  Future<void> _toggleFavorite(String storeId) async {
+    final userRef = FirebaseFirestore.instance
+        .collection('users')
+        .doc(_currentUserUid);
+    final isFavorite = _favoriteStoreIds.contains(storeId);
+
+    await userRef.update({
+      'favoriteStoreIds':
+          isFavorite
+              ? FieldValue.arrayRemove([storeId])
+              : FieldValue.arrayUnion([storeId]),
+    });
+
+    setState(() {
+      if (isFavorite) {
+        _favoriteStoreIds.remove(storeId);
+      } else {
+        _favoriteStoreIds.add(storeId);
+      }
+    });
   }
 
   Future<void> _deleteStore(String storeId) async {
@@ -91,7 +128,7 @@ class _AllStoresScreenState extends State<AllStoresScreen>
                         builder: (context) => EditStoreScreen(store: store),
                       ),
                     );
-                    _fetchStores(); // ambil ulang data toko setelah kembali
+                    _fetchStores(); // refresh data setelah edit
                   },
                 );
               },
@@ -114,7 +151,7 @@ class _AllStoresScreenState extends State<AllStoresScreen>
           if (_stores.any((store) => store.owner == _currentUserUid))
             IconButton(
               icon: const Icon(Icons.edit),
-              onPressed: () => _showStoreSelectionDialog(),
+              onPressed: _showStoreSelectionDialog,
             ),
         ],
       ),
@@ -163,6 +200,7 @@ class _AllStoresScreenState extends State<AllStoresScreen>
                         ),
                     itemBuilder: (context, index) {
                       final store = _stores[index];
+                      final isFavorite = _favoriteStoreIds.contains(store.id);
                       return FadeTransition(
                         opacity: CurvedAnimation(
                           parent: _animationController,
@@ -176,6 +214,8 @@ class _AllStoresScreenState extends State<AllStoresScreen>
                           store: store,
                           currentUserUid: _currentUserUid,
                           onDelete: () => _deleteStore(store.id),
+                          isFavorite: isFavorite,
+                          onToggleFavorite: () => _toggleFavorite(store.id),
                         ),
                       );
                     },
