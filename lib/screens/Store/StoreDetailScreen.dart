@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:florista/screens/Store/EditStoreScreen.dart';
+import 'package:florista/widgets/ReviewSection.dart';
 import 'package:florista/widgets/ProductGrid.dart';
 import 'package:florista/widgets/StoreBiodata.dart';
 import 'package:florista/widgets/StoreHeader.dart';
@@ -119,9 +120,7 @@ class _StoreDetailScreenState extends State<StoreDetailScreen> {
                             });
                           },
                         ),
-                        const Center(
-                          child: Text("No reviews yet."),
-                        ), // Dummy Reviews
+                        ReviewSection(storeId: widget.store.id), // Ganti ini
                         StoreBiodata(
                           storeId: widget.store.id,
                         ), // Komponen biodata toko

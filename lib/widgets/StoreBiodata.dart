@@ -57,12 +57,16 @@ class StoreBiodata extends StatelessWidget {
                 style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 16),
-              _buildInfoTile("Nama Toko", data['name']),
-              _buildInfoTile("Deskripsi", data['description']),
-              _buildInfoTile("Alamat", data['address']),
-              _buildInfoTile("Email", data['email']),
-              _buildInfoTile("Pemilik", data['ownerName']),
-              _buildInfoTile("No HP", data['phone']),
+              _buildInfoTile("Nama Toko", data['name'], Icons.store),
+              _buildInfoTile(
+                "Deskripsi",
+                data['description'],
+                Icons.description,
+              ),
+              _buildInfoTile("Alamat", data['address'], Icons.location_on),
+              _buildInfoTile("Email", data['email'], Icons.email),
+              _buildInfoTile("Pemilik", data['ownerName'], Icons.person),
+              _buildInfoTile("No HP", data['phone'], Icons.phone),
             ],
           ),
         );
@@ -70,11 +74,11 @@ class StoreBiodata extends StatelessWidget {
     );
   }
 
-  Widget _buildInfoTile(String title, dynamic value) {
+  Widget _buildInfoTile(String title, dynamic value, IconData icon) {
     return Card(
       margin: const EdgeInsets.symmetric(vertical: 8.0),
       child: ListTile(
-        leading: const Icon(Icons.info_outline),
+        leading: Icon(icon),
         title: Text(title),
         subtitle: Text(
           value != null && value.toString().isNotEmpty ? value.toString() : '-',
