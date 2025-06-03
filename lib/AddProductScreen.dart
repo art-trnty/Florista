@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -23,7 +24,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
   final _nameController = TextEditingController();
   final _descController = TextEditingController();
   final _priceController = TextEditingController();
-  File? _selectedImage;
+  Uint8List? _imageBytes;
   String? _base64Image;
   bool _isLoading = false;
 
@@ -32,10 +33,10 @@ class _AddProductScreenState extends State<AddProductScreen> {
       source: ImageSource.gallery,
     );
     if (pickedFile != null) {
-      final imageBytes = await pickedFile.readAsBytes();
+      final bytes = await pickedFile.readAsBytes();
       setState(() {
-        _selectedImage = File(pickedFile.path);
-        _base64Image = base64Encode(imageBytes);
+        _imageBytes = bytes;
+        _base64Image = base64Encode(bytes);
       });
     }
   }
@@ -93,21 +94,30 @@ class _AddProductScreenState extends State<AddProductScreen> {
                     border: Border.all(color: Colors.grey),
                     borderRadius: BorderRadius.circular(12),
                     image:
-                        _selectedImage != null
+                        _imageBytes != null
                             ? DecorationImage(
-                              image: FileImage(_selectedImage!),
+                              image: MemoryImage(_imageBytes!),
                               fit: BoxFit.cover,
                             )
                             : null,
                   ),
                   child:
-                      _selectedImage == null
+                      _imageBytes == null
                           ? const Center(
                             child: Icon(Icons.add_photo_alternate, size: 40),
                           )
-                          : null,
+                          : ClipRRect(
+                            borderRadius: BorderRadius.circular(12),
+                            child: Image.memory(
+                              _imageBytes!,
+                              width: double.infinity,
+                              height: 150,
+                              fit: BoxFit.cover,
+                            ),
+                          ),
                 ),
               ),
+
               const SizedBox(height: 16),
               _buildTextField("Nama Produk", _nameController),
               _buildTextField("Deskripsi", _descController, maxLines: 2),
