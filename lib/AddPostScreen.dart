@@ -7,6 +7,7 @@ import 'package:url_launcher/url_launcher_string.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/foundation.dart'; // <-- Tambahkan ini
 
 class AddPostScreen extends StatefulWidget {
   const AddPostScreen({super.key});
@@ -24,6 +25,7 @@ class _AddPostScreenState extends State<AddPostScreen> {
   final _emailController = TextEditingController();
   bool _isLoading = false;
   File? _selectedImage;
+  Uint8List? _imageBytes;
   String? _base64Image;
 
   Future<void> _pickImage() async {
@@ -32,10 +34,10 @@ class _AddPostScreenState extends State<AddPostScreen> {
     );
 
     if (pickedFile != null) {
-      final imageBytes = await pickedFile.readAsBytes();
+      final bytes = await pickedFile.readAsBytes();
       setState(() {
-        _selectedImage = File(pickedFile.path);
-        _base64Image = base64Encode(imageBytes);
+        _imageBytes = bytes;
+        _base64Image = base64Encode(bytes);
       });
     }
   }
@@ -194,26 +196,36 @@ class _AddPostScreenState extends State<AddPostScreen> {
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(16),
                     border: Border.all(color: Colors.grey.shade400),
-                    image:
-                        _selectedImage != null
-                            ? DecorationImage(
-                              image: FileImage(_selectedImage!),
-                              fit: BoxFit.cover,
-                            )
-                            : null,
                   ),
                   child:
-                      _selectedImage == null
-                          ? const Center(
-                            child: Icon(
-                              Icons.add_a_photo,
-                              size: 40,
-                              color: Colors.grey,
+                      _imageBytes != null
+                          ? ClipRRect(
+                            borderRadius: BorderRadius.circular(16),
+                            child: Image.memory(
+                              _imageBytes!,
+                              width: double.infinity,
+                              height: 180,
+                              fit: BoxFit.cover,
                             ),
                           )
-                          : null,
+                          : Container(
+                            height: 180,
+                            width: double.infinity,
+                            decoration: BoxDecoration(
+                              border: Border.all(color: Colors.grey.shade400),
+                              borderRadius: BorderRadius.circular(16),
+                            ),
+                            child: const Center(
+                              child: Icon(
+                                Icons.add_a_photo,
+                                size: 40,
+                                color: Colors.grey,
+                              ),
+                            ),
+                          ),
                 ),
               ),
+
               const SizedBox(height: 16),
               _buildTextField("Nama Toko", _nameController),
               _buildTextFieldWithIcon(

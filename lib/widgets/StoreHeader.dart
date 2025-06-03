@@ -60,10 +60,11 @@ class StoreHeader extends StatelessWidget {
                       // ★ Dynamic Stars
                       ..._buildRatingStars(rating),
                       const SizedBox(width: 8),
-                      Text(
-                        '${rating.toStringAsFixed(1)}',
-                        style: const TextStyle(fontWeight: FontWeight.bold),
-                      ),
+                      if (rating > 0)
+                        Text(
+                          '${rating.toStringAsFixed(1)}',
+                          style: const TextStyle(fontWeight: FontWeight.bold),
+                        ),
 
                       const SizedBox(width: 8),
                       const Icon(Icons.verified, size: 16, color: Colors.blue),

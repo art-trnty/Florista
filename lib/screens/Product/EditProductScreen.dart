@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:typed_data';
+import 'package:flutter/services.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:florista/models/ProductModel.dart';
 import 'package:flutter/material.dart';
@@ -60,7 +61,7 @@ class _EditProductScreenState extends State<EditProductScreen> {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(content: Text("Produk berhasil diperbarui")),
           );
-          Navigator.pop(context);
+          Navigator.pop(context, true);
         }
       } catch (e) {
         ScaffoldMessenger.of(
@@ -117,8 +118,21 @@ class _EditProductScreenState extends State<EditProductScreen> {
                 controller: _priceController,
                 decoration: const InputDecoration(labelText: 'Harga'),
                 keyboardType: TextInputType.number,
-                validator: (value) => value!.isEmpty ? 'Wajib diisi' : null,
+                inputFormatters: [
+                  FilteringTextInputFormatter.allow(RegExp(r'[0-9.]')),
+                ],
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Wajib diisi';
+                  }
+                  final price = double.tryParse(value);
+                  if (price == null) {
+                    return 'Harga harus berupa angka';
+                  }
+                  return null;
+                },
               ),
+
               const SizedBox(height: 20),
               ElevatedButton(
                 onPressed: _updateProduct,
