@@ -9,6 +9,7 @@ class StoreModel {
   final String email;
   final String imageBase64;
   final String owner;
+  final double? rating;
 
   StoreModel({
     required this.id,
@@ -19,6 +20,7 @@ class StoreModel {
     required this.email,
     required this.imageBase64,
     required this.owner,
+    required this.rating,
   });
 
   factory StoreModel.fromMap(Map<String, dynamic> data, String docId) {
@@ -31,6 +33,8 @@ class StoreModel {
       email: data['email'] ?? '',
       imageBase64: data['imageBase64'] ?? '',
       owner: data['owner'] ?? '',
+      rating:
+          (data['rating'] is num) ? (data['rating'] as num).toDouble() : 0.0,
     );
   }
 
@@ -43,6 +47,7 @@ class StoreModel {
       'email': email,
       'imageBase64': imageBase64,
       'owner': owner,
+      'rating': rating ?? 0.0,
       'createdAt': FieldValue.serverTimestamp(),
     };
   }

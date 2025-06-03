@@ -25,11 +25,19 @@ class _StoreDetailScreenState extends State<StoreDetailScreen> {
   final TextEditingController _searchController = TextEditingController();
   List<String> selectedProductIds = [];
   bool isDeleting = false;
+  bool _isLoading = false;
+
+  late StoreModel _store;
+
+  @override
+  void initState() {
+    super.initState();
+    _store = widget.store;
+  }
 
   @override
   Widget build(BuildContext context) {
-    final isOwner =
-        FirebaseAuth.instance.currentUser?.uid == widget.store.owner;
+    final isOwner = FirebaseAuth.instance.currentUser?.uid == _store.owner;
 
     return Scaffold(
       appBar: AppBar(
@@ -40,13 +48,44 @@ class _StoreDetailScreenState extends State<StoreDetailScreen> {
             IconButton(
               icon: const Icon(Icons.edit),
               tooltip: 'Edit Biodata Toko',
-              onPressed: () {
-                Navigator.push(
+              onPressed: () async {
+                final result = await Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (_) => EditStoreScreen(store: widget.store),
+                    builder: (_) => EditStoreScreen(store: _store),
                   ),
                 );
+
+                if (result == true) {
+                  setState(() {
+                    _isLoading = true;
+                  });
+
+                  showDialog(
+                    context: context,
+                    barrierDismissible: false,
+                    builder:
+                        (_) => const Center(child: CircularProgressIndicator()),
+                  );
+
+                  final snapshot =
+                      await FirebaseFirestore.instance
+                          .collection('stores')
+                          .doc(_store.id)
+                          .get();
+
+                  final updatedStore = StoreModel.fromMap(
+                    snapshot.data()!,
+                    snapshot.id,
+                  );
+
+                  Navigator.pop(context); // Tutup dialog loading
+
+                  setState(() {
+                    _store = updatedStore;
+                    _isLoading = false;
+                  });
+                }
               },
             ),
             if (selectedProductIds.isNotEmpty)
@@ -67,72 +106,73 @@ class _StoreDetailScreenState extends State<StoreDetailScreen> {
           ],
         ],
       ),
-      body: Column(
-        children: [
-          StoreHeader(store: widget.store),
-          Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: TextField(
-              controller: _searchController,
-              decoration: InputDecoration(
-                hintText: "Cari produk...",
-                prefixIcon: const Icon(Icons.search),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12.0),
-                ),
-              ),
-              onChanged: (value) {
-                setState(() {});
-              },
-            ),
-          ),
-          Expanded(
-            child: DefaultTabController(
-              length: 3,
-              child: Column(
+      body:
+          _isLoading
+              ? const Center(child: CircularProgressIndicator())
+              : Column(
                 children: [
-                  Container(
-                    color: Colors.grey[200],
-                    child: const TabBar(
-                      labelColor: Colors.green,
-                      unselectedLabelColor: Colors.grey,
-                      indicatorColor: Colors.green,
-                      tabs: [
-                        Tab(text: 'Product'),
-                        Tab(text: 'Reviews'), // dulu "Discount"
-                        Tab(text: 'Biodata Toko'), // dulu "Reviews"
-                      ],
+                  StoreHeader(store: _store),
+                  Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: TextField(
+                      controller: _searchController,
+                      decoration: InputDecoration(
+                        hintText: "Cari produk...",
+                        prefixIcon: const Icon(Icons.search),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12.0),
+                        ),
+                      ),
+                      onChanged: (value) {
+                        setState(() {});
+                      },
                     ),
                   ),
                   Expanded(
-                    child: TabBarView(
-                      children: [
-                        ProductGrid(
-                          storeId: widget.store.id,
-                          isOwner: isOwner,
-                          searchQuery: _searchController.text,
-                          selectedProductIds: selectedProductIds,
-                          onToggleSelection: (id) {
-                            setState(() {
-                              selectedProductIds.contains(id)
-                                  ? selectedProductIds.remove(id)
-                                  : selectedProductIds.add(id);
-                            });
-                          },
-                        ),
-                        ReviewSection(storeId: widget.store.id), // Ganti ini
-                        StoreBiodata(
-                          storeId: widget.store.id,
-                        ), // Komponen biodata toko
-                      ],
+                    child: DefaultTabController(
+                      length: 3,
+                      child: Column(
+                        children: [
+                          Container(
+                            color: Colors.grey[200],
+                            child: const TabBar(
+                              labelColor: Colors.green,
+                              unselectedLabelColor: Colors.grey,
+                              indicatorColor: Colors.green,
+                              tabs: [
+                                Tab(text: 'Product'),
+                                Tab(text: 'Reviews'),
+                                Tab(text: 'Biodata Toko'),
+                              ],
+                            ),
+                          ),
+                          Expanded(
+                            child: TabBarView(
+                              children: [
+                                ProductGrid(
+                                  storeId: _store.id,
+                                  isOwner: isOwner,
+                                  searchQuery: _searchController.text,
+                                  selectedProductIds: selectedProductIds,
+                                  onToggleSelection: (id) {
+                                    setState(() {
+                                      selectedProductIds.contains(id)
+                                          ? selectedProductIds.remove(id)
+                                          : selectedProductIds.add(id);
+                                    });
+                                  },
+                                ),
+                                ReviewSection(storeId: _store.id),
+                                StoreBiodata(storeId: _store.id),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                 ],
               ),
-            ),
-          ),
-        ],
-      ),
       floatingActionButton:
           isOwner
               ? FloatingActionButton.extended(
@@ -142,8 +182,8 @@ class _StoreDetailScreenState extends State<StoreDetailScreen> {
                     MaterialPageRoute(
                       builder:
                           (_) => AddProductScreen(
-                            storeId: widget.store.id,
-                            ownerId: widget.store.owner,
+                            storeId: _store.id,
+                            ownerId: _store.owner,
                           ),
                     ),
                   );

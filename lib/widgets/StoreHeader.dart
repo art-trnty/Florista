@@ -10,6 +10,7 @@ class StoreHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final imageBytes = base64Decode(store.imageBase64);
+    final double rating = store.rating ?? 0.0;
 
     return Stack(
       children: [
@@ -46,18 +47,28 @@ class StoreHeader extends StatelessWidget {
                   Text(store.address),
                   const SizedBox(height: 8),
                   Row(
-                    children: const [
-                      Icon(Icons.location_on, size: 16, color: Colors.green),
-                      SizedBox(width: 4),
-                      Text("2 km"),
-                      SizedBox(width: 8),
-                      Icon(Icons.star, size: 16, color: Colors.amber),
-                      SizedBox(width: 4),
-                      Text("4.8"),
-                      SizedBox(width: 8),
-                      Icon(Icons.verified, size: 16, color: Colors.blue),
-                      SizedBox(width: 4),
-                      Text("Verified"),
+                    children: [
+                      const Icon(
+                        Icons.location_on,
+                        size: 16,
+                        color: Colors.green,
+                      ),
+                      const SizedBox(width: 4),
+                      const Text("2 km"),
+                      const SizedBox(width: 8),
+
+                      // ★ Dynamic Stars
+                      ..._buildRatingStars(rating),
+                      const SizedBox(width: 8),
+                      Text(
+                        '${rating.toStringAsFixed(1)}',
+                        style: const TextStyle(fontWeight: FontWeight.bold),
+                      ),
+
+                      const SizedBox(width: 8),
+                      const Icon(Icons.verified, size: 16, color: Colors.blue),
+                      const SizedBox(width: 4),
+                      const Text("Verified"),
                     ],
                   ),
                 ],
@@ -67,5 +78,26 @@ class StoreHeader extends StatelessWidget {
         ),
       ],
     );
+  }
+
+  List<Widget> _buildRatingStars(double rating) {
+    List<Widget> stars = [];
+    int fullStars = rating.floor();
+    bool hasHalfStar = (rating - fullStars) >= 0.5;
+    int emptyStars = 5 - fullStars - (hasHalfStar ? 1 : 0);
+
+    for (int i = 0; i < fullStars; i++) {
+      stars.add(const Icon(Icons.star, size: 16, color: Colors.amber));
+    }
+
+    if (hasHalfStar) {
+      stars.add(const Icon(Icons.star_half, size: 16, color: Colors.amber));
+    }
+
+    for (int i = 0; i < emptyStars; i++) {
+      stars.add(const Icon(Icons.star_border, size: 16, color: Colors.amber));
+    }
+
+    return stars;
   }
 }

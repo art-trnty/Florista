@@ -20,6 +20,7 @@ class _EditStoreScreenState extends State<EditStoreScreen> {
   late TextEditingController _addressController;
   late TextEditingController _emailController;
   late TextEditingController _phoneController;
+  late TextEditingController _ratingController;
 
   String? _imageBase64;
   bool _isLoading = false;
@@ -35,6 +36,9 @@ class _EditStoreScreenState extends State<EditStoreScreen> {
     _emailController = TextEditingController(text: widget.store.email ?? '');
     _phoneController = TextEditingController(text: widget.store.phone ?? '');
     _imageBase64 = widget.store.imageBase64;
+    _ratingController = TextEditingController(
+      text: widget.store.rating?.toString() ?? '0.0',
+    );
   }
 
   @override
@@ -44,6 +48,7 @@ class _EditStoreScreenState extends State<EditStoreScreen> {
     _addressController.dispose();
     _emailController.dispose();
     _phoneController.dispose();
+    _ratingController.dispose();
     super.dispose();
   }
 
@@ -94,6 +99,7 @@ class _EditStoreScreenState extends State<EditStoreScreen> {
             'email': _emailController.text.trim(),
             'phone': _phoneController.text.trim(),
             'imageBase64': _imageBase64,
+            'rating': double.tryParse(_ratingController.text.trim()) ?? 0.0,
           });
 
       ScaffoldMessenger.of(context).showSnackBar(
@@ -209,6 +215,19 @@ class _EditStoreScreenState extends State<EditStoreScreen> {
                 keyboardType: TextInputType.phone,
               ),
               const SizedBox(height: 24),
+              TextFormField(
+                controller: _ratingController,
+                decoration: const InputDecoration(labelText: 'Rating Toko '),
+                keyboardType: TextInputType.number,
+                validator: (value) {
+                  final rating = double.tryParse(value ?? '');
+                  if (rating == null || rating < 0 || rating > 5) {
+                    return 'Rating harus antara 0.0 dan 5.0';
+                  }
+                  return null;
+                },
+              ),
+
               ElevatedButton.icon(
                 onPressed: _isLoading ? null : _updateStore,
                 icon: const Icon(Icons.save),
