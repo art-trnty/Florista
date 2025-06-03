@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:typed_data';
+import 'package:intl/intl.dart';
 import 'package:flutter/material.dart';
 import 'package:florista/models/ProductModel.dart';
 
@@ -57,9 +58,10 @@ class ProductCard extends StatelessWidget {
 
           // Harga Produk
           Text(
-            "Rp ${product.price.toStringAsFixed(0)}",
+            "Rp ${NumberFormat.decimalPattern('id_ID').format(product.price)}",
             style: const TextStyle(color: Colors.green),
           ),
+
           const SizedBox(height: 4),
 
           // Deskripsi (opsional)
