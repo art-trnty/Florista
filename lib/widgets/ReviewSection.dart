@@ -16,6 +16,8 @@ class _ReviewSectionState extends State<ReviewSection> {
   final TextEditingController _commentController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
 
+  final Map<String, bool> _showRepliesMap = {};
+
   @override
   void dispose() {
     _commentController.dispose();
@@ -111,6 +113,7 @@ class _ReviewSectionState extends State<ReviewSection> {
                           .get();
                   final userData = userDoc.data() ?? {};
                   final userName = userData['name'] ?? 'User';
+                  final userPhotoBase64 = userData['photoBase64'] ?? '';
 
                   await FirebaseFirestore.instance
                       .collection('stores')
@@ -121,6 +124,7 @@ class _ReviewSectionState extends State<ReviewSection> {
                       .add({
                         'userId': user.uid,
                         'userName': userName,
+                        'userPhotoBase64': userPhotoBase64,
                         'comment': replyController.text.trim(),
                         'timestamp': FieldValue.serverTimestamp(),
                       });
@@ -182,57 +186,136 @@ class _ReviewSectionState extends State<ReviewSection> {
         }
 
         final replies = snapshot.data!.docs;
+        final showReplies = _showRepliesMap[reviewId] ?? false;
+
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
-          children:
-              replies.map((doc) {
-                final data = doc.data() as Map<String, dynamic>;
-                final timestamp = data['timestamp'];
-                String formattedTime = '';
+          children: [
+            TextButton(
+              onPressed: () {
+                setState(() {
+                  _showRepliesMap[reviewId] = !showReplies;
+                });
+              },
+              child: Text(
+                showReplies
+                    ? "Sembunyikan balasan"
+                    : "Lihat ${replies.length} balasan",
+                style: const TextStyle(fontSize: 13),
+              ),
+            ),
+            if (showReplies)
+              Padding(
+                padding: const EdgeInsets.only(left: 16.0, top: 8.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children:
+                      replies.map((doc) {
+                        final data = doc.data() as Map<String, dynamic>;
+                        final timestamp = data['timestamp'];
+                        String formattedTime = '';
 
-                if (timestamp != null && timestamp is Timestamp) {
-                  final date = timestamp.toDate();
-                  formattedTime = DateFormat('dd MMM yyyy, HH:mm').format(date);
-                }
+                        if (timestamp != null && timestamp is Timestamp) {
+                          final date = timestamp.toDate();
+                          formattedTime = DateFormat(
+                            'dd MMM yyyy, HH:mm',
+                          ).format(date);
+                        }
 
-                return Padding(
-                  padding: const EdgeInsets.only(left: 16.0, top: 4.0),
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Icon(Icons.reply, size: 16),
-                      const SizedBox(width: 4),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              "${data['userName'] ?? 'Unknown'}",
-                              style: const TextStyle(
-                                fontWeight: FontWeight.bold,
-                                fontSize: 13,
+                        final userPhotoBase64 = data['userPhotoBase64'] ?? '';
+                        ImageProvider? imageProvider;
+                        if (userPhotoBase64.isNotEmpty) {
+                          try {
+                            final base64Str =
+                                userPhotoBase64.contains(',')
+                                    ? userPhotoBase64.split(',').last
+                                    : userPhotoBase64;
+                            imageProvider = MemoryImage(
+                              base64Decode(base64Str),
+                            );
+                          } catch (_) {
+                            imageProvider = null;
+                          }
+                        }
+
+                        final userName = data['userName'] ?? 'User';
+                        final firstInitial =
+                            userName.isNotEmpty
+                                ? userName[0].toUpperCase()
+                                : '?';
+
+                        return Container(
+                          margin: const EdgeInsets.only(top: 8.0),
+                          padding: const EdgeInsets.all(10.0),
+                          decoration: BoxDecoration(
+                            color: Colors.grey.shade50,
+                            border: Border(
+                              left: BorderSide(
+                                color: Colors.grey.shade400,
+                                width: 2.0,
                               ),
                             ),
-                            if (formattedTime.isNotEmpty)
-                              Text(
-                                formattedTime,
-                                style: const TextStyle(
-                                  fontSize: 11,
-                                  color: Colors.grey,
+                          ),
+                          child: Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              CircleAvatar(
+                                radius: 18,
+                                backgroundColor: Colors.blue.shade100,
+                                backgroundImage: imageProvider,
+                                child:
+                                    imageProvider == null
+                                        ? Text(
+                                          firstInitial,
+                                          style: const TextStyle(
+                                            fontSize: 14,
+                                            color: Colors.blue,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                        )
+                                        : null,
+                              ),
+                              const SizedBox(width: 10),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Row(
+                                      children: [
+                                        Expanded(
+                                          child: Text(
+                                            userName,
+                                            style: const TextStyle(
+                                              fontWeight: FontWeight.bold,
+                                              fontSize: 13,
+                                            ),
+                                          ),
+                                        ),
+                                        if (formattedTime.isNotEmpty)
+                                          Text(
+                                            formattedTime,
+                                            style: const TextStyle(
+                                              fontSize: 11,
+                                              color: Colors.grey,
+                                            ),
+                                          ),
+                                      ],
+                                    ),
+                                    const SizedBox(height: 4),
+                                    Text(
+                                      data['comment'] ?? '',
+                                      style: const TextStyle(fontSize: 13),
+                                    ),
+                                  ],
                                 ),
                               ),
-                            const SizedBox(height: 2),
-                            Text(
-                              data['comment'] ?? '',
-                              style: const TextStyle(fontSize: 12),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                );
-              }).toList(),
+                            ],
+                          ),
+                        );
+                      }).toList(),
+                ),
+              ),
+          ],
         );
       },
     );
@@ -295,7 +378,7 @@ class _ReviewSectionState extends State<ReviewSection> {
                   final isOwner =
                       FirebaseAuth.instance.currentUser!.uid == data['userId'];
 
-                  final String userPhotoBase64 = data['userPhotoBase64'] ?? '';
+                  final userPhotoBase64 = data['userPhotoBase64'] ?? '';
                   ImageProvider? imageProvider;
                   if (userPhotoBase64.isNotEmpty) {
                     try {
@@ -309,8 +392,8 @@ class _ReviewSectionState extends State<ReviewSection> {
                     }
                   }
 
-                  final String userName = data['userName'] ?? 'User';
-                  final String firstInitial =
+                  final userName = data['userName'] ?? 'User';
+                  final firstInitial =
                       userName.isNotEmpty ? userName[0].toUpperCase() : '?';
 
                   return Container(
