@@ -5,7 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:florista/screens/SignInScreen.dart';
 import 'package:florista/screens/Store/AllStoreScreen.dart';
-import 'package:florista/screens/Store/FavoriteStoreScreen.dart'; // Pastikan path sesuai
+import 'package:florista/screens/Store/FavoriteStoreScreen.dart';
 
 class ProfileDetailScreen extends StatefulWidget {
   const ProfileDetailScreen({super.key});
@@ -17,10 +17,9 @@ class ProfileDetailScreen extends StatefulWidget {
 class _ProfileDetailScreenState extends State<ProfileDetailScreen> {
   bool _isLoading = false;
   int _selectedIndex = 3;
-
   final user = FirebaseAuth.instance.currentUser;
   late final DocumentReference userDocRef;
-  String? photoBase64;
+  Map<String, dynamic>? userData;
 
   @override
   void initState() {
@@ -34,15 +33,13 @@ class _ProfileDetailScreenState extends State<ProfileDetailScreen> {
 
   ImageProvider<Object> _getProfileImageProvider(String imageData) {
     try {
-      if (imageData.startsWith("data:image") || imageData.length > 100) {
-        final base64Str =
-            imageData.contains(',') ? imageData.split(',').last : imageData;
-        return MemoryImage(base64Decode(base64Str));
-      }
+      final base64Str =
+          imageData.contains(',') ? imageData.split(',').last : imageData;
+      return MemoryImage(base64Decode(base64Str));
     } catch (e) {
       debugPrint("Gagal decode base64: $e");
+      return const AssetImage("assets/profile.jpg");
     }
-    return const AssetImage("assets/profile.jpg");
   }
 
   Future<void> _pickImage(ImageSource source) async {
@@ -56,9 +53,7 @@ class _ProfileDetailScreenState extends State<ProfileDetailScreen> {
 
       try {
         await userDocRef.update({'photoBase64': base64Image});
-        setState(() {
-          photoBase64 = base64Image;
-        });
+        setState(() {}); // Trigger reload UI
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Foto berhasil diperbarui')),
         );
@@ -135,26 +130,31 @@ class _ProfileDetailScreenState extends State<ProfileDetailScreen> {
   }
 
   void _onItemTapped(int index) {
-    if (index == 3) return;
-    if (index == 0) {
-      Navigator.of(context).popUntil((route) => route.isFirst);
-    } else if (index == 1) {
-      Navigator.push(
-        context,
-        MaterialPageRoute(builder: (context) => const AllStoresScreen()),
-      );
-    } else if (index == 2) {
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder:
-              (context) => FavoriteStoreScreen(
-                favoriteStoreIds: const [],
-                allStores: const [],
-                currentUserUid: user?.uid,
-              ),
-        ),
-      );
+    if (index == _selectedIndex) return;
+
+    switch (index) {
+      case 0:
+        Navigator.of(context).popUntil((route) => route.isFirst);
+        break;
+      case 1:
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => const AllStoresScreen()),
+        );
+        break;
+      case 2:
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder:
+                (context) => FavoriteStoreScreen(
+                  favoriteStoreIds: const [],
+                  allStores: const [],
+                  currentUserUid: user?.uid ?? '',
+                ),
+          ),
+        );
+        break;
     }
   }
 
@@ -226,14 +226,13 @@ class _ProfileDetailScreenState extends State<ProfileDetailScreen> {
               return const Center(child: Text('Data profil tidak ditemukan.'));
             }
 
-            final data = snapshot.data!.data() as Map<String, dynamic>;
-            final name = data['name'] ?? '-';
+            userData = snapshot.data!.data() as Map<String, dynamic>;
+            final name = userData!['name'] ?? '-';
             final firstInitial = name.isNotEmpty ? name[0].toUpperCase() : '-';
-
-            photoBase64 = data['photoBase64'];
+            final photoBase64 = userData!['photoBase64'] ?? '';
             final imageProvider =
-                (photoBase64 != null && photoBase64!.isNotEmpty)
-                    ? _getProfileImageProvider(photoBase64!)
+                photoBase64.isNotEmpty
+                    ? _getProfileImageProvider(photoBase64)
                     : null;
 
             return SingleChildScrollView(
@@ -259,9 +258,20 @@ class _ProfileDetailScreenState extends State<ProfileDetailScreen> {
                                 )
                                 : null,
                       ),
-                      IconButton(
-                        icon: const Icon(Icons.camera_alt, color: Colors.green),
-                        onPressed: _changeProfileImage,
+                      Positioned(
+                        bottom: 4,
+                        right: 4,
+                        child: GestureDetector(
+                          onTap: _changeProfileImage,
+                          child: CircleAvatar(
+                            backgroundColor: Colors.white,
+                            radius: 20,
+                            child: const Icon(
+                              Icons.camera_alt,
+                              color: Colors.green,
+                            ),
+                          ),
+                        ),
                       ),
                     ],
                   ),
@@ -278,25 +288,51 @@ class _ProfileDetailScreenState extends State<ProfileDetailScreen> {
                   _buildProfileItem(
                     Icons.account_circle,
                     'Username',
-                    data['username'] ?? '-',
+                    userData!['username'] ?? '-',
                   ),
-                  _buildProfileItem(Icons.email, 'Email', data['email'] ?? '-'),
+                  _buildProfileItem(
+                    Icons.email,
+                    'Email',
+                    userData!['email'] ?? '-',
+                  ),
                   _buildProfileItem(
                     Icons.phone,
                     'Nomor Telepon',
-                    data['phoneNumber'] ?? '-',
+                    userData!['phoneNumber'] ?? '-',
                   ),
                   _buildProfileItem(
                     Icons.location_on,
                     'Alamat',
-                    data['address'] ?? '-',
+                    userData!['address'] ?? '-',
                   ),
                   _buildProfileItem(
                     Icons.wc,
                     'Jenis Kelamin',
-                    data['gender'] ?? '-',
+                    userData!['gender'] ?? '-',
                   ),
-                  _buildProfileItem(Icons.badge, 'Role', data['role'] ?? '-'),
+                  _buildProfileItem(
+                    Icons.badge,
+                    'Role',
+                    userData!['role'] ?? '-',
+                  ),
+                  const SizedBox(height: 24),
+                  ElevatedButton.icon(
+                    onPressed: () {
+                      // Navigasi ke halaman edit profil jika tersedia
+                    },
+                    icon: const Icon(Icons.edit, color: Colors.white),
+                    label: const Text('Edit Profil'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.green,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 24,
+                        vertical: 12,
+                      ),
+                    ),
+                  ),
                 ],
               ),
             );

@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
@@ -13,6 +14,14 @@ class ReviewSection extends StatefulWidget {
 
 class _ReviewSectionState extends State<ReviewSection> {
   final TextEditingController _commentController = TextEditingController();
+  final ScrollController _scrollController = ScrollController();
+
+  @override
+  void dispose() {
+    _commentController.dispose();
+    _scrollController.dispose();
+    super.dispose();
+  }
 
   Future<void> _submitComment() async {
     final user = FirebaseAuth.instance.currentUser;
@@ -27,8 +36,7 @@ class _ReviewSectionState extends State<ReviewSection> {
       final userData = userDoc.data() ?? {};
 
       final userName = userData['name'] ?? 'User';
-      final userPhotoUrl =
-          userData.containsKey('photoUrl') ? userData['photoUrl'] : '';
+      final userPhotoBase64 = userData['photoBase64'] ?? '';
 
       await FirebaseFirestore.instance
           .collection('stores')
@@ -37,13 +45,23 @@ class _ReviewSectionState extends State<ReviewSection> {
           .add({
             'userId': user.uid,
             'userName': userName,
-            'userPhotoUrl': userPhotoUrl,
+            'userPhotoBase64': userPhotoBase64,
             'comment': _commentController.text.trim(),
             'likes': [],
             'timestamp': FieldValue.serverTimestamp(),
           });
 
       _commentController.clear();
+
+      Future.delayed(const Duration(milliseconds: 300), () {
+        if (_scrollController.hasClients) {
+          _scrollController.animateTo(
+            0.0,
+            duration: const Duration(milliseconds: 500),
+            curve: Curves.easeOut,
+          );
+        }
+      });
     } catch (e) {
       ScaffoldMessenger.of(
         context,
@@ -104,7 +122,7 @@ class _ReviewSectionState extends State<ReviewSection> {
                         'userId': user.uid,
                         'userName': userName,
                         'comment': replyController.text.trim(),
-                        'timestamp': DateTime.now(),
+                        'timestamp': FieldValue.serverTimestamp(),
                       });
 
                   Navigator.pop(context);
@@ -169,16 +187,46 @@ class _ReviewSectionState extends State<ReviewSection> {
           children:
               replies.map((doc) {
                 final data = doc.data() as Map<String, dynamic>;
+                final timestamp = data['timestamp'];
+                String formattedTime = '';
+
+                if (timestamp != null && timestamp is Timestamp) {
+                  final date = timestamp.toDate();
+                  formattedTime = DateFormat('dd MMM yyyy, HH:mm').format(date);
+                }
+
                 return Padding(
                   padding: const EdgeInsets.only(left: 16.0, top: 4.0),
                   child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       const Icon(Icons.reply, size: 16),
                       const SizedBox(width: 4),
                       Expanded(
-                        child: Text(
-                          "${data['userName']}: ${data['comment']}",
-                          style: const TextStyle(fontSize: 12),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              "${data['userName'] ?? 'Unknown'}",
+                              style: const TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 13,
+                              ),
+                            ),
+                            if (formattedTime.isNotEmpty)
+                              Text(
+                                formattedTime,
+                                style: const TextStyle(
+                                  fontSize: 11,
+                                  color: Colors.grey,
+                                ),
+                              ),
+                            const SizedBox(height: 2),
+                            Text(
+                              data['comment'] ?? '',
+                              style: const TextStyle(fontSize: 12),
+                            ),
+                          ],
                         ),
                       ),
                     ],
@@ -194,7 +242,6 @@ class _ReviewSectionState extends State<ReviewSection> {
   Widget build(BuildContext context) {
     return Column(
       children: [
-        // Input komentar
         Padding(
           padding: const EdgeInsets.all(8.0),
           child: Row(
@@ -216,7 +263,6 @@ class _ReviewSectionState extends State<ReviewSection> {
           ),
         ),
         const Divider(),
-        // Daftar komentar
         Expanded(
           child: StreamBuilder<QuerySnapshot>(
             stream:
@@ -237,6 +283,7 @@ class _ReviewSectionState extends State<ReviewSection> {
 
               final comments = snapshot.data!.docs;
               return ListView.builder(
+                controller: _scrollController,
                 itemCount: comments.length,
                 itemBuilder: (context, index) {
                   final doc = comments[index];
@@ -247,6 +294,24 @@ class _ReviewSectionState extends State<ReviewSection> {
                   );
                   final isOwner =
                       FirebaseAuth.instance.currentUser!.uid == data['userId'];
+
+                  final String userPhotoBase64 = data['userPhotoBase64'] ?? '';
+                  ImageProvider? imageProvider;
+                  if (userPhotoBase64.isNotEmpty) {
+                    try {
+                      final base64Str =
+                          userPhotoBase64.contains(',')
+                              ? userPhotoBase64.split(',').last
+                              : userPhotoBase64;
+                      imageProvider = MemoryImage(base64Decode(base64Str));
+                    } catch (_) {
+                      imageProvider = null;
+                    }
+                  }
+
+                  final String userName = data['userName'] ?? 'User';
+                  final String firstInitial =
+                      userName.isNotEmpty ? userName[0].toUpperCase() : '?';
 
                   return Container(
                     margin: const EdgeInsets.symmetric(
@@ -264,33 +329,46 @@ class _ReviewSectionState extends State<ReviewSection> {
                         Row(
                           children: [
                             CircleAvatar(
-                              radius: 20,
-                              backgroundImage:
-                                  (data['userPhotoUrl'] != null &&
-                                          data['userPhotoUrl']
-                                              .toString()
-                                              .isNotEmpty)
-                                      ? MemoryImage(
-                                            base64Decode(data['userPhotoUrl']),
-                                          )
-                                          as ImageProvider
-                                      : null,
+                              radius: 30,
+                              backgroundColor: Colors.green.shade100,
+                              backgroundImage: imageProvider,
                               child:
-                                  (data['userPhotoUrl'] == null ||
-                                          data['userPhotoUrl']
-                                              .toString()
-                                              .isEmpty)
-                                      ? const Icon(Icons.person)
+                                  imageProvider == null
+                                      ? Text(
+                                        firstInitial,
+                                        style: const TextStyle(
+                                          fontSize: 20,
+                                          color: Colors.green,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      )
                                       : null,
                             ),
                             const SizedBox(width: 10),
                             Expanded(
-                              child: Text(
-                                data['userName'] ?? 'Unknown',
-                                style: const TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 14,
-                                ),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    userName,
+                                    style: const TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 14,
+                                    ),
+                                  ),
+                                  if (data['timestamp'] != null &&
+                                      data['timestamp'] is Timestamp)
+                                    Text(
+                                      DateFormat('dd MMM yyyy, HH:mm').format(
+                                        (data['timestamp'] as Timestamp)
+                                            .toDate(),
+                                      ),
+                                      style: const TextStyle(
+                                        fontSize: 12,
+                                        color: Colors.grey,
+                                      ),
+                                    ),
+                                ],
                               ),
                             ),
                             if (isOwner)
@@ -334,12 +412,12 @@ class _ReviewSectionState extends State<ReviewSection> {
                                   }
                                 },
                                 itemBuilder:
-                                    (context) => [
-                                      const PopupMenuItem(
+                                    (context) => const [
+                                      PopupMenuItem(
                                         value: 'edit',
                                         child: Text("Edit Komentar"),
                                       ),
-                                      const PopupMenuItem(
+                                      PopupMenuItem(
                                         value: 'delete',
                                         child: Text("Hapus Komentar"),
                                       ),
