@@ -20,12 +20,15 @@ class StoreCard extends StatelessWidget {
   });
 
   @override
+  @override
   Widget build(BuildContext context) {
     final Uint8List imageBytes = base64Decode(store.imageBase64);
     final bool isOwner = currentUserUid == store.owner;
+    final screenWidth = MediaQuery.of(context).size.width;
+    final cardWidth = screenWidth * 0.7; // Atau ganti 0.7 sesuai kebutuhanmu
 
     return Container(
-      width: 240,
+      width: cardWidth,
       margin: const EdgeInsets.only(right: 12),
       decoration: BoxDecoration(
         color: Colors.white,
@@ -35,7 +38,6 @@ class StoreCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Gambar toko
           ClipRRect(
             borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
             child: Image.memory(
@@ -45,15 +47,12 @@ class StoreCard extends StatelessWidget {
               fit: BoxFit.cover,
             ),
           ),
-
-          // Informasi toko
           Padding(
             padding: const EdgeInsets.all(8.0),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Nama toko dan aksi
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
@@ -113,10 +112,7 @@ class StoreCard extends StatelessWidget {
                     ),
                   ],
                 ),
-
                 const SizedBox(height: 4),
-
-                // Alamat toko
                 Row(
                   children: [
                     const Icon(Icons.location_on, size: 14, color: Colors.grey),
@@ -130,9 +126,7 @@ class StoreCard extends StatelessWidget {
                     ),
                   ],
                 ),
-
                 const SizedBox(height: 4),
-
                 const Row(
                   children: [
                     Icon(Icons.timer, size: 14, color: Colors.grey),

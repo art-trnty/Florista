@@ -25,9 +25,11 @@ class SignUpScreenState extends State<SignUpScreen> {
   bool _isConfirmPasswordVisible = false;
   String? _selectedGender;
   String? _selectedRole;
+  int? _generatedOtp;
 
   final List<String> _genders = ['Male', 'Female'];
   final List<String> _roles = ['Pengguna', 'Admin'];
+
   Future<bool> _isUsernameExists(String username) async {
     final querySnapshot =
         await FirebaseFirestore.instance
@@ -36,6 +38,90 @@ class SignUpScreenState extends State<SignUpScreen> {
             .get();
 
     return querySnapshot.docs.isNotEmpty;
+  }
+
+  Future<void> _sendOtp(String email) async {
+    final random = DateTime.now().millisecondsSinceEpoch % 1000000;
+    _generatedOtp = random;
+
+    // Simulasi kirim OTP (seharusnya kirim via email di backend)
+    print("Kode OTP untuk $email: $_generatedOtp");
+
+    await _showOtpDialog(email);
+  }
+
+  Future<void> _showOtpDialog(String email) async {
+    final otpController = TextEditingController();
+
+    await showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('Verifikasi Email'),
+          content: TextField(
+            controller: otpController,
+            keyboardType: TextInputType.number,
+            decoration: const InputDecoration(labelText: 'Masukkan Kode OTP'),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop(); // keluar dialog
+              },
+              child: const Text('Batal'),
+            ),
+            ElevatedButton(
+              onPressed: () async {
+                if (otpController.text == _generatedOtp.toString()) {
+                  Navigator.of(context).pop(); // keluar dialog
+                  await _createFirebaseAccount(); // hanya buat akun kalau OTP cocok
+                } else {
+                  _showErrorMessage('Kode OTP salah!');
+                }
+              },
+              child: const Text('Verifikasi'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Future<void> _createFirebaseAccount() async {
+    final email = _emailController.text.trim();
+    final password = _passwordController.text;
+    final name = _nameController.text.trim();
+    final username = _usernameController.text.trim();
+    final address = _addressController.text.trim();
+    final phoneNumber = _phoneNumberController.text.trim();
+    final gender = _selectedGender ?? '';
+    final role = _selectedRole ?? '';
+
+    try {
+      final userCredential = await FirebaseAuth.instance
+          .createUserWithEmailAndPassword(email: email, password: password);
+      final user = userCredential.user;
+      if (user != null) {
+        await FirebaseFirestore.instance.collection('users').doc(user.uid).set({
+          'name': name,
+          'username': username,
+          'address': address,
+          'phoneNumber': phoneNumber,
+          'gender': gender,
+          'role': role,
+          'email': email,
+        });
+
+        _showSuccessMessage('Akun berhasil diverifikasi dan terdaftar!');
+      }
+    } on FirebaseAuthException catch (error) {
+      _showErrorMessage(_getAuthErrorMessage(error.code));
+    } catch (error) {
+      _showErrorMessage('Terjadi kesalahan: $error');
+    } finally {
+      setState(() => _isLoading = false);
+    }
   }
 
   @override
@@ -381,7 +467,6 @@ class SignUpScreenState extends State<SignUpScreen> {
       _showErrorMessage(
         'Username sudah digunakan. Silakan pilih username lain.',
       );
-      setState(() => _isLoading = false);
       return;
     }
 
@@ -391,18 +476,37 @@ class SignUpScreenState extends State<SignUpScreen> {
       final userCredential = await FirebaseAuth.instance
           .createUserWithEmailAndPassword(email: email, password: password);
       final user = userCredential.user;
-      if (user != null) {
-        await FirebaseFirestore.instance.collection('users').doc(user.uid).set({
-          'name': name,
-          'username': username,
-          'address': address,
-          'phoneNumber': phoneNumber,
-          'gender': gender,
-          'role': role,
-          'email': email,
-        });
 
-        _showSuccessMessage('Akun berhasil terdaftar!');
+      if (user != null && !user.emailVerified) {
+        await user.sendEmailVerification();
+
+        // Tampilkan dialog menunggu verifikasi
+        await _showEmailVerificationDialog(user);
+
+        await user.reload(); // Refresh status user
+        if (FirebaseAuth.instance.currentUser!.emailVerified) {
+          // Jika terverifikasi, simpan ke Firestore
+          await FirebaseFirestore.instance
+              .collection('users')
+              .doc(user.uid)
+              .set({
+                'name': name,
+                'username': username,
+                'address': address,
+                'phoneNumber': phoneNumber,
+                'gender': gender,
+                'role': role,
+                'email': email,
+              });
+
+          _showSuccessMessage(
+            'Email terverifikasi. Akun berhasil didaftarkan!',
+          );
+        } else {
+          // Hapus akun jika belum verifikasi
+          await user.delete();
+          _showErrorMessage('Email belum diverifikasi. Akun tidak dibuat.');
+        }
       }
     } on FirebaseAuthException catch (error) {
       _showErrorMessage(_getAuthErrorMessage(error.code));
@@ -411,6 +515,30 @@ class SignUpScreenState extends State<SignUpScreen> {
     } finally {
       setState(() => _isLoading = false);
     }
+  }
+
+  Future<void> _showEmailVerificationDialog(User user) async {
+    return showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('Verifikasi Email'),
+          content: const Text(
+            'Link verifikasi telah dikirim ke email kamu. Silakan verifikasi lalu tekan tombol "Saya sudah verifikasi".',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () async {
+                await user.reload();
+                Navigator.of(context).pop(); // Tutup dialog
+              },
+              child: const Text('Saya sudah verifikasi'),
+            ),
+          ],
+        );
+      },
+    );
   }
 
   void _showSuccessMessage(String message) {
