@@ -134,18 +134,9 @@ class StoreCard extends StatelessWidget {
 
                 Row(
                   children: [
-                    Icon(
-                      Icons.verified,
-                      size: 16,
-                      color: store.isVerified ? Colors.blue : Colors.grey,
-                    ),
+                    const Icon(Icons.verified, size: 16, color: Colors.blue),
                     const SizedBox(width: 4),
-                    Text(
-                      store.isVerified
-                          ? "Terverifikasi"
-                          : "Belum Terverifikasi",
-                      style: const TextStyle(fontSize: 12),
-                    ),
+                    const Text("Verified", style: TextStyle(fontSize: 12)),
                   ],
                 ),
               ],

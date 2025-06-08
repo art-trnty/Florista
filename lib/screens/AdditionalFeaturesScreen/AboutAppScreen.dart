@@ -4,8 +4,8 @@ import 'package:florista/screens/Store/FavoriteStoreScreen.dart';
 import 'package:florista/services/auth_service.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:florista/models/StoreModel.dart';
-import 'package:florista/screens/AdditionalFeaturesScreen/AboutAppScreen.dart'; // Untuk navigasi ulang bila perlu
-import 'package:florista/screens/HomeScreen.dart'; // Tambahkan jika perlu kembali ke Home
+import 'package:florista/screens/HomeScreen.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class AboutAppScreen extends StatefulWidget {
   const AboutAppScreen({super.key});
@@ -23,27 +23,23 @@ class _AboutAppScreenState extends State<AboutAppScreen> {
   @override
   void initState() {
     super.initState();
-    _loadCurrentUserUid();
-    _fetchStores();
-    _loadFavoriteStores();
+    _loadCurrentUserUidAndData();
   }
 
-  void _loadCurrentUserUid() {
+  Future<void> _loadCurrentUserUidAndData() async {
     final uid = AuthService.currentUserUid;
-    setState(() {
-      _currentUserUid = uid;
-    });
+    if (uid != null) {
+      setState(() {
+        _currentUserUid = uid;
+      });
+      await Future.wait([_loadFavoriteStores(uid), _fetchStores()]);
+    }
   }
 
-  Future<void> _loadFavoriteStores() async {
-    if (_currentUserUid == null) return;
-
+  Future<void> _loadFavoriteStores(String uid) async {
     try {
       final snapshot =
-          await FirebaseFirestore.instance
-              .collection('users')
-              .doc(_currentUserUid)
-              .get();
+          await FirebaseFirestore.instance.collection('users').doc(uid).get();
       final data = snapshot.data();
       if (data != null && data.containsKey('favoriteStores')) {
         setState(() {
@@ -99,7 +95,6 @@ class _AboutAppScreenState extends State<AboutAppScreen> {
         }
         break;
       case 3:
-        // Sudah di halaman ini
         break;
     }
 
@@ -108,13 +103,145 @@ class _AboutAppScreenState extends State<AboutAppScreen> {
     });
   }
 
+  Future<void> _launchURL(String url) async {
+    final uri = Uri.parse(url);
+    if (!await launchUrl(uri, mode: LaunchMode.externalApplication)) {
+      throw 'Could not launch $url';
+    }
+  }
+
+  Widget buildContactCard({
+    required String name,
+    required String phone,
+    required String instagram,
+    required String facebook,
+    required String email,
+    required String address,
+    required String imagePath,
+  }) {
+    return Card(
+      margin: const EdgeInsets.symmetric(vertical: 8),
+      elevation: 2,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      child: Padding(
+        padding: const EdgeInsets.all(12.0),
+        child: Column(
+          children: [
+            // Judul nama admin di tengah atas
+            Center(
+              child: Text(
+                name,
+                textAlign: TextAlign.center,
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.green,
+                ),
+              ),
+            ),
+            const SizedBox(height: 16),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Teks kontak di sebelah kiri
+                Expanded(
+                  flex: 3,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      GestureDetector(
+                        onTap:
+                            () => _launchURL(
+                              'https://wa.me/${phone.replaceAll('+', '').replaceAll(' ', '')}',
+                            ),
+                        child: Text(
+                          "📞 WhatsApp: $phone",
+                          style: const TextStyle(
+                            color: Colors.blue,
+                            fontSize: 13,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      _buildContactLink(
+                        label: "📷 Instagram: @$instagram",
+                        url: 'https://instagram.com/$instagram',
+                      ),
+                      _buildContactLink(
+                        label: "📘 Facebook: $facebook",
+                        url: 'https://facebook.com/$facebook',
+                      ),
+                      _buildContactLink(
+                        label: "✉️ Email: $email",
+                        url: 'mailto:$email',
+                      ),
+                      _buildContactLink(
+                        label: "📍 $address",
+                        url:
+                            'https://www.google.com/maps/search/?api=1&query=${Uri.encodeComponent(address)}',
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 12),
+                // Foto di sebelah kanan, tetap berbentuk bulat (circle)
+                CircleAvatar(
+                  radius: 40, // Ukuran sedang
+                  backgroundImage: AssetImage(imagePath),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _contactRow(IconData icon, String text, String url) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 2),
+      child: GestureDetector(
+        onTap: () => _launchURL(url),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Icon(icon, size: 16, color: Colors.grey[800]),
+            const SizedBox(width: 6),
+            Expanded(
+              child: Text(
+                text,
+                style: const TextStyle(fontSize: 13, color: Colors.blue),
+                overflow: TextOverflow.ellipsis,
+                maxLines: 2,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildContactLink({required String label, required String url}) {
+    return GestureDetector(
+      onTap: () => _launchURL(url),
+      child: Container(
+        alignment: Alignment.centerLeft,
+        margin: const EdgeInsets.symmetric(vertical: 2),
+        child: Text(
+          label,
+          style: const TextStyle(color: Colors.blue, fontSize: 13),
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Tentang Aplikasi'),
         backgroundColor: Colors.green,
-        automaticallyImplyLeading: false, // <-- Tambahkan baris ini
+        automaticallyImplyLeading: false,
       ),
       bottomNavigationBar: BottomNavigationBar(
         selectedItemColor: Colors.green,
@@ -135,29 +262,109 @@ class _AboutAppScreenState extends State<AboutAppScreen> {
         ],
       ),
       body: Container(
-        padding: const EdgeInsets.all(16.0),
-        child: const Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Florista - Aplikasi Toko Tanaman Hias',
-              style: TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-                color: Colors.green,
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            colors: [Color(0xFFE8F5E9), Color(0xFFC8E6C9)],
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+          ),
+        ),
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            children: [
+              const SizedBox(height: 20),
+              Image.asset('assets/images/plant_logo.png', height: 120),
+              const SizedBox(height: 20),
+              Card(
+                elevation: 4,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.all(20.0),
+                  child: Column(
+                    children: [
+                      const Text(
+                        'Florista - Aplikasi Toko Tanaman Hias',
+                        style: TextStyle(
+                          fontSize: 22,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.green,
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      const Text(
+                        'Aplikasi ini dibuat untuk membantu Anda menemukan berbagai toko tanaman hias terbaik di sekitar Anda. Dengan antarmuka yang sederhana dan fitur-fitur yang lengkap, Anda bisa mencari, menambahkan favorit, dan mengeksplor berbagai tanaman hias dengan mudah.',
+                        style: TextStyle(fontSize: 16),
+                      ),
+                      const SizedBox(height: 16),
+                      const Divider(),
+                      const SizedBox(height: 12),
+                      const Center(
+                        child: Text(
+                          'Kontak Person',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.green,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      const Divider(),
+                      const SizedBox(height: 12),
+                      buildContactCard(
+                        name: "Person 1 - Rara Ananta Bunga",
+                        phone: "+62 896-0378-8974",
+                        instagram: "art.trnty",
+                        facebook: "art.trnty",
+                        email: "rara.anantabunga03@gmail.com",
+                        address: "Jl. H Sanusi No.3231, Suka Bangun",
+                        imagePath: "assets/Additional/art.trnty.jpeg",
+                      ),
+                      buildContactCard(
+                        name: "Person 2 - Dini Aulia",
+                        phone: "+62 812-3456-2222",
+                        instagram: "dini.florista",
+                        facebook: "facebook.com/dini.florista",
+                        email: "dini@florista.id",
+                        address: "Jl. Melati No.2, Bandung",
+                        imagePath: "assets/images/admin2.jpg",
+                      ),
+                      buildContactCard(
+                        name: "Person 3 - Amirah",
+                        phone: "+62 812-3456-3333",
+                        instagram: "amirah.florista",
+                        facebook: "facebook.com/amirah.florista",
+                        email: "amirah@florista.id",
+                        address: "Jl. Kenanga No.3, Surabaya",
+                        imagePath: "assets/images/admin3.jpg",
+                      ),
+                      buildContactCard(
+                        name: "Person 4 - Fikri",
+                        phone: "+62 812-3456-4444",
+                        instagram: "fikri.botani",
+                        facebook: "facebook.com/fikri.florista",
+                        email: "fikri@florista.id",
+                        address: "Jl. Anggrek No.4, Yogyakarta",
+                        imagePath: "assets/images/admin4.jpg",
+                      ),
+
+                      const SizedBox(height: 16),
+                      const Divider(),
+                      const SizedBox(height: 8),
+                      const Text(
+                        'Dikembangkan oleh Tim Florista.\n© 2025 Florista Inc.',
+                        style: TextStyle(fontSize: 14, color: Colors.grey),
+                        textAlign: TextAlign.center,
+                      ),
+                    ],
+                  ),
+                ),
               ),
-            ),
-            SizedBox(height: 16),
-            Text(
-              'Aplikasi ini dibuat untuk membantu Anda menemukan berbagai toko tanaman hias terbaik di sekitar Anda. Dengan antarmuka yang sederhana dan fitur-fitur yang lengkap, Anda bisa mencari, menambahkan favorit, dan mengeksplor berbagai tanaman hias dengan mudah.',
-              style: TextStyle(fontSize: 16),
-            ),
-            SizedBox(height: 16),
-            Text(
-              'Dikembangkan oleh Tim Florista.\n© 2025 Florista Inc.',
-              style: TextStyle(fontSize: 14, color: Colors.grey),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

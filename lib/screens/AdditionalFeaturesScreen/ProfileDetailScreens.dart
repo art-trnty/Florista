@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:florista/screens/AdditionalFeaturesScreen/AboutAppScreen.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
@@ -19,7 +20,6 @@ class ProfileDetailScreen extends StatefulWidget {
 
 class _ProfileDetailScreenState extends State<ProfileDetailScreen> {
   bool _isLoading = false;
-  int _selectedIndex = 3;
   final user = FirebaseAuth.instance.currentUser;
   late final DocumentReference userDocRef;
   Map<String, dynamic>? userData;
@@ -142,35 +142,6 @@ class _ProfileDetailScreenState extends State<ProfileDetailScreen> {
     }
   }
 
-  void _onItemTapped(int index) {
-    if (index == _selectedIndex) return;
-
-    switch (index) {
-      case 0:
-        Navigator.of(context).popUntil((route) => route.isFirst);
-        break;
-      case 1:
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (_) => const AllStoresScreen()),
-        );
-        break;
-      case 2:
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(
-            builder:
-                (_) => FavoriteStoreScreen(
-                  favoriteStoreIds: const [],
-                  allStores: const [],
-                  currentUserUid: user?.uid ?? '',
-                ),
-          ),
-        );
-        break;
-    }
-  }
-
   Widget _buildProfileItem(IconData icon, String title, String subtitle) {
     return Card(
       elevation: 3,
@@ -198,21 +169,6 @@ class _ProfileDetailScreenState extends State<ProfileDetailScreen> {
         centerTitle: true,
         actions: [
           IconButton(icon: const Icon(Icons.logout), onPressed: _logout),
-        ],
-      ),
-      bottomNavigationBar: BottomNavigationBar(
-        selectedItemColor: Colors.green,
-        unselectedItemColor: Colors.grey,
-        currentIndex: _selectedIndex,
-        onTap: _onItemTapped,
-        items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.home), label: "Home"),
-          BottomNavigationBarItem(icon: Icon(Icons.search), label: "Search"),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.favorite),
-            label: "Favorite",
-          ),
-          BottomNavigationBarItem(icon: Icon(Icons.person), label: "Profil"),
         ],
       ),
       body: Stack(
