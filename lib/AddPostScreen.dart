@@ -1,5 +1,5 @@
 import 'dart:convert';
-import 'dart:io';
+import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:geocoding/geocoding.dart';
@@ -7,7 +7,6 @@ import 'package:url_launcher/url_launcher_string.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:flutter/foundation.dart'; // <-- Tambahkan ini
 
 class AddPostScreen extends StatefulWidget {
   const AddPostScreen({super.key});
@@ -23,8 +22,8 @@ class _AddPostScreenState extends State<AddPostScreen> {
   final _descriptionController = TextEditingController();
   final _phoneController = TextEditingController();
   final _emailController = TextEditingController();
+
   bool _isLoading = false;
-  File? _selectedImage;
   Uint8List? _imageBytes;
   String? _base64Image;
 
@@ -32,7 +31,6 @@ class _AddPostScreenState extends State<AddPostScreen> {
     final pickedFile = await ImagePicker().pickImage(
       source: ImageSource.gallery,
     );
-
     if (pickedFile != null) {
       final bytes = await pickedFile.readAsBytes();
       setState(() {
@@ -57,14 +55,11 @@ class _AddPostScreenState extends State<AddPostScreen> {
       Position position = await Geolocator.getCurrentPosition(
         desiredAccuracy: LocationAccuracy.high,
       );
-
       final url =
           'https://www.google.com/maps/search/?api=1&query=${position.latitude},${position.longitude}';
 
-      if (!await canLaunchUrlString(url)) {
+      if (!await canLaunchUrlString(url))
         throw 'Tidak dapat membuka Google Maps';
-      }
-
       await launchUrlString(url);
     } catch (e) {
       ScaffoldMessenger.of(
@@ -74,10 +69,7 @@ class _AddPostScreenState extends State<AddPostScreen> {
   }
 
   Future<void> _getCurrentLocation() async {
-    bool serviceEnabled;
-    LocationPermission permission;
-
-    serviceEnabled = await Geolocator.isLocationServiceEnabled();
+    bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
     if (!serviceEnabled) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text("Layanan lokasi tidak aktif.")),
@@ -85,7 +77,7 @@ class _AddPostScreenState extends State<AddPostScreen> {
       return;
     }
 
-    permission = await Geolocator.checkPermission();
+    LocationPermission permission = await Geolocator.checkPermission();
     if (permission == LocationPermission.denied) {
       permission = await Geolocator.requestPermission();
       if (permission == LocationPermission.denied) {
@@ -106,19 +98,15 @@ class _AddPostScreenState extends State<AddPostScreen> {
     Position position = await Geolocator.getCurrentPosition(
       desiredAccuracy: LocationAccuracy.high,
     );
-
     List<Placemark> placemarks = await placemarkFromCoordinates(
       position.latitude,
       position.longitude,
     );
-
     if (placemarks.isNotEmpty) {
       final place = placemarks.first;
       final address =
           "${place.street}, ${place.subLocality}, ${place.locality}, ${place.administrativeArea} ${place.postalCode}";
-      setState(() {
-        _addressController.text = address;
-      });
+      setState(() => _addressController.text = address);
     }
   }
 
@@ -150,13 +138,11 @@ class _AddPostScreenState extends State<AddPostScreen> {
         'phone': _phoneController.text.trim(),
         'email': _emailController.text.trim(),
         'imageBase64': _base64Image!,
-        'owner':
-            currentUser.uid, // <-- ganti ini supaya sama dengan rules firestore
+        'owner': currentUser.uid,
         'createdAt': Timestamp.now(),
       };
 
       await FirebaseFirestore.instance.collection('stores').add(storeData);
-
       await FirebaseFirestore.instance
           .collection('users')
           .doc(currentUser.uid)
@@ -165,7 +151,7 @@ class _AddPostScreenState extends State<AddPostScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text("Toko berhasil ditambahkan!")),
       );
-      Navigator.pop(context, true); // Kirim sinyal bahwa perlu refresh
+      Navigator.pop(context, true);
     } catch (e) {
       ScaffoldMessenger.of(
         context,
@@ -208,38 +194,23 @@ class _AddPostScreenState extends State<AddPostScreen> {
                               fit: BoxFit.cover,
                             ),
                           )
-                          : Container(
-                            height: 180,
-                            width: double.infinity,
-                            decoration: BoxDecoration(
-                              border: Border.all(color: Colors.grey.shade400),
-                              borderRadius: BorderRadius.circular(16),
-                            ),
-                            child: const Center(
-                              child: Icon(
-                                Icons.add_a_photo,
-                                size: 40,
-                                color: Colors.grey,
-                              ),
+                          : const Center(
+                            child: Icon(
+                              Icons.add_a_photo,
+                              size: 40,
+                              color: Colors.grey,
                             ),
                           ),
                 ),
               ),
-
               const SizedBox(height: 16),
               _buildTextField("Nama Toko", _nameController),
               _buildTextFieldWithIcon(
                 label: "Alamat",
                 controller: _addressController,
                 icon: Icons.my_location,
-                onIconPressed: _getCurrentLocation, // <- Pastikan ini ada
+                onIconPressed: _getCurrentLocation,
               ),
-              IconButton(
-                icon: const Icon(Icons.location_on),
-                color: Colors.green,
-                onPressed: _pickLocation,
-              ),
-
               _buildTextField("Deskripsi", _descriptionController, maxLines: 3),
               _buildTextField(
                 "Nomor Telepon",
@@ -295,11 +266,27 @@ class _AddPostScreenState extends State<AddPostScreen> {
           filled: true,
           fillColor: Colors.grey[100],
         ),
-        validator:
-            (value) =>
-                value == null || value.isEmpty
-                    ? "$label tidak boleh kosong"
-                    : null,
+        validator: (value) {
+          if (value == null || value.trim().isEmpty) {
+            return "$label tidak boleh kosong";
+          }
+
+          if (label == "Nomor Telepon") {
+            final phoneRegExp = RegExp(r'^[0-9]{8,15}$');
+            if (!phoneRegExp.hasMatch(value.trim())) {
+              return "Nomor telepon tidak valid (hanya angka, 8-15 digit)";
+            }
+          }
+
+          if (label == "Email") {
+            final emailRegExp = RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
+            if (!emailRegExp.hasMatch(value.trim())) {
+              return "Email tidak valid";
+            }
+          }
+
+          return null;
+        },
       ),
     );
   }

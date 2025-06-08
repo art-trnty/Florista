@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:url_launcher/url_launcher_string.dart';
 
 class StoreBiodata extends StatelessWidget {
   final String storeId;
@@ -33,6 +34,20 @@ class StoreBiodata extends StatelessWidget {
     };
   }
 
+  void _launchMapFromAddress(BuildContext context, String address) async {
+    final encodedAddress = Uri.encodeComponent(address);
+    final url =
+        'https://www.google.com/maps/search/?api=1&query=$encodedAddress';
+
+    if (await canLaunchUrlString(url)) {
+      await launchUrlString(url);
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Gagal membuka alamat di Google Maps")),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return FutureBuilder<Map<String, dynamic>>(
@@ -63,7 +78,12 @@ class StoreBiodata extends StatelessWidget {
                 data['description'],
                 Icons.description,
               ),
-              _buildInfoTile("Alamat", data['address'], Icons.location_on),
+              _buildInfoTile(
+                "Alamat",
+                data['address'],
+                Icons.location_on,
+                onTap: () => _launchMapFromAddress(context, data['address']),
+              ),
               _buildInfoTile("Email", data['email'], Icons.email),
               _buildInfoTile("Pemilik", data['ownerName'], Icons.person),
               _buildInfoTile("No HP", data['phone'], Icons.phone),
@@ -74,7 +94,12 @@ class StoreBiodata extends StatelessWidget {
     );
   }
 
-  Widget _buildInfoTile(String title, dynamic value, IconData icon) {
+  Widget _buildInfoTile(
+    String title,
+    dynamic value,
+    IconData icon, {
+    VoidCallback? onTap,
+  }) {
     return Card(
       margin: const EdgeInsets.symmetric(vertical: 8.0),
       child: ListTile(
@@ -82,7 +107,12 @@ class StoreBiodata extends StatelessWidget {
         title: Text(title),
         subtitle: Text(
           value != null && value.toString().isNotEmpty ? value.toString() : '-',
+          style: TextStyle(
+            color: onTap != null ? Colors.blue : null,
+            decoration: onTap != null ? TextDecoration.underline : null,
+          ),
         ),
+        onTap: onTap,
       ),
     );
   }
