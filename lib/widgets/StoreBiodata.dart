@@ -34,6 +34,18 @@ class StoreBiodata extends StatelessWidget {
     };
   }
 
+  void _launchEmail(BuildContext context, String email) async {
+    final url = 'mailto:$email';
+
+    if (await canLaunchUrlString(url)) {
+      await launchUrlString(url);
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Gagal membuka aplikasi email")),
+      );
+    }
+  }
+
   void _launchMapFromAddress(BuildContext context, String address) async {
     final encodedAddress = Uri.encodeComponent(address);
     final url =
@@ -44,6 +56,18 @@ class StoreBiodata extends StatelessWidget {
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text("Gagal membuka alamat di Google Maps")),
+      );
+    }
+  }
+
+  void _launchSMS(BuildContext context, String phoneNumber) async {
+    final url = 'sms:$phoneNumber';
+
+    if (await canLaunchUrlString(url)) {
+      await launchUrlString(url);
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Gagal membuka aplikasi pesan")),
       );
     }
   }
@@ -84,9 +108,19 @@ class StoreBiodata extends StatelessWidget {
                 Icons.location_on,
                 onTap: () => _launchMapFromAddress(context, data['address']),
               ),
-              _buildInfoTile("Email", data['email'], Icons.email),
+              _buildInfoTile(
+                "Email",
+                data['email'],
+                Icons.email,
+                onTap: () => _launchEmail(context, data['email']),
+              ),
               _buildInfoTile("Pemilik", data['ownerName'], Icons.person),
-              _buildInfoTile("No HP", data['phone'], Icons.phone),
+              _buildInfoTile(
+                "No HP",
+                data['phone'],
+                Icons.phone,
+                onTap: () => _launchSMS(context, data['phone']),
+              ),
             ],
           ),
         );

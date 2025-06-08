@@ -207,12 +207,34 @@ class _EditStoreScreenState extends State<EditStoreScreen> {
                 controller: _emailController,
                 decoration: const InputDecoration(labelText: 'Email Toko'),
                 keyboardType: TextInputType.emailAddress,
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Email tidak boleh kosong';
+                  }
+                  final emailRegex = RegExp(
+                    r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$',
+                  );
+                  if (!emailRegex.hasMatch(value)) {
+                    return 'Format email tidak valid';
+                  }
+                  return null;
+                },
               ),
               const SizedBox(height: 12),
               TextFormField(
                 controller: _phoneController,
                 decoration: const InputDecoration(labelText: 'Nomor HP Toko'),
                 keyboardType: TextInputType.phone,
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Nomor HP tidak boleh kosong';
+                  }
+                  final phoneRegex = RegExp(r'^08\d{8,12}$');
+                  if (!phoneRegex.hasMatch(value)) {
+                    return 'Nomor HP harus terdiri dari 10-13 digit';
+                  }
+                  return null;
+                },
               ),
               const SizedBox(height: 24),
               TextFormField(
