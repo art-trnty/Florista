@@ -525,15 +525,27 @@ class SignUpScreenState extends State<SignUpScreen> {
         return AlertDialog(
           title: const Text('Verifikasi Email'),
           content: const Text(
-            'Link verifikasi telah dikirim ke email kamu. Silakan verifikasi lalu tekan tombol "Saya sudah verifikasi".',
+            'Email verifikasi telah dikirim. Silakan cek email Anda dan klik link verifikasi.',
           ),
           actions: [
             TextButton(
               onPressed: () async {
-                await user.reload();
-                Navigator.of(context).pop(); // Tutup dialog
+                await user.reload(); // reload status verifikasi
+                if (FirebaseAuth.instance.currentUser!.emailVerified) {
+                  Navigator.of(context).pop();
+                } else {
+                  _showErrorMessage(
+                    'Email belum diverifikasi. Coba lagi setelah memverifikasi.',
+                  );
+                }
               },
-              child: const Text('Saya sudah verifikasi'),
+              child: const Text('Sudah Verifikasi'),
+            ),
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: const Text('Tutup'),
             ),
           ],
         );
@@ -541,16 +553,16 @@ class SignUpScreenState extends State<SignUpScreen> {
     );
   }
 
+  void _showErrorMessage(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(message), backgroundColor: Colors.red),
+    );
+  }
+
   void _showSuccessMessage(String message) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text(message), backgroundColor: Colors.green),
     );
-  }
-
-  void _showErrorMessage(String message) {
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(SnackBar(content: Text(message)));
   }
 
   String _getAuthErrorMessage(String code) {

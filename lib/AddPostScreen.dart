@@ -274,7 +274,7 @@ class _AddPostScreenState extends State<AddPostScreen> {
           if (label == "Nomor Telepon") {
             final phoneRegExp = RegExp(r'^[0-9]{8,15}$');
             if (!phoneRegExp.hasMatch(value.trim())) {
-              return "Nomor telepon tidak valid (hanya angka, 8-15 digit)";
+              return "Nomor telepon tidak valid (hanya angka, 10-13 digit)";
             }
           }
 
