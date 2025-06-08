@@ -1,9 +1,13 @@
+import 'package:florista/screens/HomeScreen.dart';
 import 'package:florista/screens/Store/EditStoreScreen.dart';
+import 'package:florista/screens/Store/FavoriteStoreScreen.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:florista/models/StoreModel.dart';
 import 'package:florista/widgets/StoreCard.dart';
 import 'package:florista/services/auth_service.dart';
+
+import '../AdditionalFeaturesScreen/AboutAppScreen.dart' show AboutAppScreen;
 
 class AllStoresScreen extends StatefulWidget {
   const AllStoresScreen({super.key});
@@ -121,14 +125,14 @@ class _AllStoresScreenState extends State<AllStoresScreen>
                   leading: const Icon(Icons.store),
                   title: Text(store.name),
                   onTap: () async {
-                    Navigator.of(context).pop(); // tutup dialog
+                    Navigator.of(context).pop();
                     await Navigator.push(
                       context,
                       MaterialPageRoute(
                         builder: (context) => EditStoreScreen(store: store),
                       ),
                     );
-                    _fetchStores(); // refresh data setelah edit
+                    _fetchStores();
                   },
                 );
               },
@@ -143,6 +147,7 @@ class _AllStoresScreenState extends State<AllStoresScreen>
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        automaticallyImplyLeading: false, // << tambahkan ini
         title: const Text("Semua Toko Tanaman Hias"),
         backgroundColor: Colors.green,
         foregroundColor: Colors.white,
@@ -155,6 +160,7 @@ class _AllStoresScreenState extends State<AllStoresScreen>
             ),
         ],
       ),
+
       body: Container(
         decoration: const BoxDecoration(
           gradient: LinearGradient(
@@ -221,6 +227,68 @@ class _AllStoresScreenState extends State<AllStoresScreen>
                     },
                   ),
                 ),
+      ),
+
+      bottomNavigationBar: BottomNavigationBar(
+        selectedItemColor: Colors.green,
+        unselectedItemColor: Colors.grey,
+        currentIndex: 1, // Index untuk halaman AllStores
+        onTap: (index) async {
+          switch (index) {
+            case 0:
+              Navigator.of(context).pushAndRemoveUntil(
+                MaterialPageRoute(builder: (context) => const HomeScreen()),
+                (route) => false,
+              );
+              break;
+            case 1:
+              // Sudah di halaman ini (AllStores)
+              break;
+            case 2:
+              if (_currentUserUid != null) {
+                final userDoc =
+                    await FirebaseFirestore.instance
+                        .collection('users')
+                        .doc(_currentUserUid)
+                        .get();
+                final List<dynamic> favoriteIds =
+                    userDoc.data()?['favoriteStoreIds'] ?? [];
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder:
+                        (context) => FavoriteStoreScreen(
+                          favoriteStoreIds: favoriteIds.cast<String>(),
+                          allStores: _stores,
+                        ),
+                  ),
+                );
+              } else {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text("Data pengguna belum dimuat.")),
+                );
+              }
+              break;
+            case 3:
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const AboutAppScreen()),
+              );
+              break;
+          }
+        },
+        items: const [
+          BottomNavigationBarItem(icon: Icon(Icons.home), label: "Home"),
+          BottomNavigationBarItem(icon: Icon(Icons.search), label: "Search"),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.favorite),
+            label: "Favorite Store",
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.contact_mail),
+            label: "Kontak",
+          ),
+        ],
       ),
     );
   }

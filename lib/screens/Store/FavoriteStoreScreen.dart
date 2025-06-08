@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:typed_data';
 import 'package:florista/models/StoreModel.dart';
+import 'package:florista/screens/AdditionalFeaturesScreen/AboutAppScreen.dart';
 import 'package:florista/screens/AdditionalFeaturesScreen/ProfileDetailScreens.dart';
 import 'package:florista/screens/Store/AllStoreScreen.dart';
 import 'package:florista/screens/Store/StoreDetailScreen.dart';
@@ -35,19 +36,17 @@ class _FavoriteStoreScreenState extends State<FavoriteStoreScreen> {
   }
 
   void _onItemTapped(int index) {
-    if (index == 2) return;
-
     if (index == 0) {
       Navigator.of(context).popUntil((route) => route.isFirst); // Balik ke Home
-    } else if (index == 3) {
-      Navigator.push(
-        context,
-        MaterialPageRoute(builder: (context) => const ProfileDetailScreen()),
-      );
     } else if (index == 1) {
       Navigator.push(
         context,
         MaterialPageRoute(builder: (context) => const AllStoresScreen()),
+      );
+    } else if (index == 3) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => const AboutAppScreen()),
       );
     }
   }
@@ -63,6 +62,7 @@ class _FavoriteStoreScreenState extends State<FavoriteStoreScreen> {
       appBar: AppBar(
         title: const Text("Toko Favorit"),
         backgroundColor: Colors.green[700],
+        automaticallyImplyLeading: false, // <-- tambahkan baris ini
       ),
       bottomNavigationBar: BottomNavigationBar(
         selectedItemColor: Colors.green,
@@ -76,7 +76,10 @@ class _FavoriteStoreScreenState extends State<FavoriteStoreScreen> {
             icon: Icon(Icons.favorite),
             label: "Favorite",
           ),
-          BottomNavigationBarItem(icon: Icon(Icons.person), label: "Profil"),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.contact_mail),
+            label: "Kontak",
+          ),
         ],
       ),
       body:

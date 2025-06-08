@@ -20,12 +20,12 @@ class StoreCard extends StatelessWidget {
   });
 
   @override
-  @override
   Widget build(BuildContext context) {
     final Uint8List imageBytes = base64Decode(store.imageBase64);
     final bool isOwner = currentUserUid == store.owner;
+    final double rating = store.rating ?? 0.0;
     final screenWidth = MediaQuery.of(context).size.width;
-    final cardWidth = screenWidth * 0.7; // Atau ganti 0.7 sesuai kebutuhanmu
+    final cardWidth = screenWidth * 0.7;
 
     return Container(
       width: cardWidth,
@@ -113,25 +113,39 @@ class StoreCard extends StatelessWidget {
                   ],
                 ),
                 const SizedBox(height: 4),
+
+                // ⭐ Rating Baris Sendiri
                 Row(
                   children: [
-                    const Icon(Icons.location_on, size: 14, color: Colors.grey),
+                    ..._buildRatingStars(rating),
                     const SizedBox(width: 4),
-                    Expanded(
-                      child: Text(
-                        store.address,
-                        style: const TextStyle(fontSize: 12),
-                        overflow: TextOverflow.ellipsis,
+                    if (rating > 0)
+                      Text(
+                        rating.toStringAsFixed(1),
+                        style: const TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
-                    ),
                   ],
                 ),
+
                 const SizedBox(height: 4),
-                const Row(
+
+                Row(
                   children: [
-                    Icon(Icons.timer, size: 14, color: Colors.grey),
-                    SizedBox(width: 4),
-                    Text("10–15 mins", style: TextStyle(fontSize: 12)),
+                    Icon(
+                      Icons.verified,
+                      size: 16,
+                      color: store.isVerified ? Colors.blue : Colors.grey,
+                    ),
+                    const SizedBox(width: 4),
+                    Text(
+                      store.isVerified
+                          ? "Terverifikasi"
+                          : "Belum Terverifikasi",
+                      style: const TextStyle(fontSize: 12),
+                    ),
                   ],
                 ),
               ],
@@ -140,5 +154,26 @@ class StoreCard extends StatelessWidget {
         ],
       ),
     );
+  }
+
+  List<Widget> _buildRatingStars(double rating) {
+    List<Widget> stars = [];
+    int fullStars = rating.floor();
+    bool hasHalfStar = (rating - fullStars) >= 0.5;
+    int emptyStars = 5 - fullStars - (hasHalfStar ? 1 : 0);
+
+    for (int i = 0; i < fullStars; i++) {
+      stars.add(const Icon(Icons.star, size: 14, color: Colors.amber));
+    }
+
+    if (hasHalfStar) {
+      stars.add(const Icon(Icons.star_half, size: 14, color: Colors.amber));
+    }
+
+    for (int i = 0; i < emptyStars; i++) {
+      stars.add(const Icon(Icons.star_border, size: 14, color: Colors.amber));
+    }
+
+    return stars;
   }
 }

@@ -1,4 +1,6 @@
 import 'dart:convert';
+import 'package:florista/screens/AdditionalFeaturesScreen/AboutAppScreen.dart';
+import 'package:florista/screens/AdditionalFeaturesScreen/ProfileDetailScreens.dart';
 import 'package:shimmer/shimmer.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:florista/screens/Store/FavoriteStoreScreen.dart';
@@ -7,7 +9,6 @@ import 'package:florista/models/ProductModel.dart';
 import 'package:florista/models/StoreModel.dart';
 import 'package:florista/screens/Store/AllStoreScreen.dart';
 import 'package:florista/screens/Store/StoreDetailScreen.dart';
-import 'package:florista/screens/AdditionalFeaturesScreen/ProfileDetailScreens.dart';
 import 'package:florista/services/location_service.dart';
 import 'package:florista/services/auth_service.dart';
 import 'package:florista/widgets/StoreCard.dart';
@@ -45,37 +46,51 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   void _onItemTapped(int index) {
-    if (index == 2) {
-      if (_currentUserUid != null) {
+    switch (index) {
+      case 0:
+        // Navigasi ke HomeScreen (halaman utama)
+        Navigator.of(context).popUntil((route) => route.isFirst);
+        break;
+
+      case 1:
+        // Navigasi ke AllStoresScreen
         Navigator.push(
           context,
-          MaterialPageRoute(
-            builder:
-                (context) => FavoriteStoreScreen(
-                  favoriteStoreIds: favoriteStoreIds,
-                  allStores: _stores,
-                ),
-          ),
+          MaterialPageRoute(builder: (context) => const AllStoresScreen()),
         );
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("Data pengguna belum dimuat.")),
-        );
-      }
-    } else if (index == 3) {
-      Navigator.push(
-        context,
-        MaterialPageRoute(builder: (context) => const ProfileDetailScreen()),
-      ).then((_) {
-        if (_currentUserUid != null) {
-          _loadProfileImage(_currentUserUid!);
-        }
-      });
-    }
+        break;
 
-    setState(() {
-      _selectedIndex = index;
-    });
+      case 2:
+        // Navigasi ke FavoriteStoreScreen, jika user sudah login
+        if (_currentUserUid != null) {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder:
+                  (context) => FavoriteStoreScreen(
+                    favoriteStoreIds: favoriteStoreIds,
+                    allStores: _stores,
+                  ),
+            ),
+          );
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text("Data pengguna belum dimuat.")),
+          );
+        }
+        break;
+
+      case 3:
+        // Navigasi ke AboutAppScreen
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => const AboutAppScreen()),
+        );
+        break;
+
+      default:
+        break;
+    }
   }
 
   void _loadCurrentUserUid() {
@@ -278,7 +293,10 @@ class _HomeScreenState extends State<HomeScreen> {
             icon: Icon(Icons.favorite),
             label: "Favorite Store",
           ),
-          BottomNavigationBarItem(icon: Icon(Icons.person), label: "Profil"),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.contact_mail),
+            label: "Kontak",
+          ),
         ],
       ),
       body: Container(
@@ -318,7 +336,14 @@ class _HomeScreenState extends State<HomeScreen> {
                       ],
                     ),
                     GestureDetector(
-                      onTap: () => _onItemTapped(3),
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const ProfileDetailScreen(),
+                          ),
+                        );
+                      },
                       child:
                           _isProfileLoading
                               ? Shimmer.fromColors(
