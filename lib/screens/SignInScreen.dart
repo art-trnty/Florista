@@ -1,3 +1,4 @@
+import 'package:florista/screens/AdditionalFeaturesScreen/ForgotPasswordScreen.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -146,6 +147,26 @@ class SignInScreenState extends State<SignInScreen> {
                                             builder:
                                                 (context) =>
                                                     const SignUpScreen(),
+                                          ),
+                                        );
+                                      },
+                              ),
+                              const TextSpan(text: " or "),
+                              TextSpan(
+                                text: "Forget Password",
+                                style: const TextStyle(
+                                  color: Colors.blue,
+                                  decoration: TextDecoration.underline,
+                                ),
+                                recognizer:
+                                    TapGestureRecognizer()
+                                      ..onTap = () {
+                                        Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                            builder:
+                                                (context) =>
+                                                    const ForgotPasswordScreen(),
                                           ),
                                         );
                                       },
