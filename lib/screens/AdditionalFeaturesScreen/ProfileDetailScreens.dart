@@ -3,6 +3,9 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:flutter_spinkit/flutter_spinkit.dart';
+
+import 'package:florista/screens/AdditionalFeaturesScreen/EditProfileScreen.dart';
 import 'package:florista/screens/SignInScreen.dart';
 import 'package:florista/screens/Store/AllStoreScreen.dart';
 import 'package:florista/screens/Store/FavoriteStoreScreen.dart';
@@ -28,7 +31,17 @@ class _ProfileDetailScreenState extends State<ProfileDetailScreen> {
       userDocRef = FirebaseFirestore.instance
           .collection('users')
           .doc(user!.uid);
+      _fetchUserData();
     }
+  }
+
+  void _fetchUserData() async {
+    setState(() => _isLoading = true);
+    final snapshot = await userDocRef.get();
+    setState(() {
+      userData = snapshot.data() as Map<String, dynamic>;
+      _isLoading = false;
+    });
   }
 
   ImageProvider<Object> _getProfileImageProvider(String imageData) {
@@ -53,7 +66,7 @@ class _ProfileDetailScreenState extends State<ProfileDetailScreen> {
 
       try {
         await userDocRef.update({'photoBase64': base64Image});
-        setState(() {}); // Trigger reload UI
+        setState(() {}); // reload
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Foto berhasil diperbarui')),
         );
@@ -124,7 +137,7 @@ class _ProfileDetailScreenState extends State<ProfileDetailScreen> {
       await FirebaseAuth.instance.signOut();
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (context) => const SignInScreen()),
+        MaterialPageRoute(builder: (_) => const SignInScreen()),
       );
     }
   }
@@ -139,7 +152,7 @@ class _ProfileDetailScreenState extends State<ProfileDetailScreen> {
       case 1:
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (context) => const AllStoresScreen()),
+          MaterialPageRoute(builder: (_) => const AllStoresScreen()),
         );
         break;
       case 2:
@@ -147,7 +160,7 @@ class _ProfileDetailScreenState extends State<ProfileDetailScreen> {
           context,
           MaterialPageRoute(
             builder:
-                (context) => FavoriteStoreScreen(
+                (_) => FavoriteStoreScreen(
                   favoriteStoreIds: const [],
                   allStores: const [],
                   currentUserUid: user?.uid ?? '',
@@ -184,11 +197,7 @@ class _ProfileDetailScreenState extends State<ProfileDetailScreen> {
         backgroundColor: Colors.green,
         centerTitle: true,
         actions: [
-          IconButton(
-            icon: const Icon(Icons.logout),
-            tooltip: 'Logout',
-            onPressed: _logout,
-          ),
+          IconButton(icon: const Icon(Icons.logout), onPressed: _logout),
         ],
       ),
       bottomNavigationBar: BottomNavigationBar(
@@ -206,138 +215,163 @@ class _ProfileDetailScreenState extends State<ProfileDetailScreen> {
           BottomNavigationBarItem(icon: Icon(Icons.person), label: "Profil"),
         ],
       ),
-      body: Container(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            colors: [Colors.white, Colors.green.shade50],
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-          ),
+      body: Stack(
+        children: [
+          _buildProfileContent(),
+          if (_isLoading)
+            Container(
+              color: Colors.black.withOpacity(0.3),
+              child: const Center(
+                child: SpinKitFadingCircle(color: Colors.green, size: 60.0),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildProfileContent() {
+    return Container(
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [Colors.white, Colors.green.shade50],
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
         ),
-        child: FutureBuilder<DocumentSnapshot>(
-          future: userDocRef.get(),
-          builder: (context, snapshot) {
-            if (snapshot.connectionState == ConnectionState.waiting ||
-                _isLoading) {
-              return const Center(child: CircularProgressIndicator());
-            }
+      ),
+      child: FutureBuilder<DocumentSnapshot>(
+        future: userDocRef.get(),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting ||
+              _isLoading) {
+            return const Center(child: SizedBox.shrink());
+          }
 
-            if (!snapshot.hasData || !snapshot.data!.exists) {
-              return const Center(child: Text('Data profil tidak ditemukan.'));
-            }
+          if (!snapshot.hasData || !snapshot.data!.exists) {
+            return const Center(child: Text('Data profil tidak ditemukan.'));
+          }
 
-            userData = snapshot.data!.data() as Map<String, dynamic>;
-            final name = userData!['name'] ?? '-';
-            final firstInitial = name.isNotEmpty ? name[0].toUpperCase() : '-';
-            final photoBase64 = userData!['photoBase64'] ?? '';
-            final imageProvider =
-                photoBase64.isNotEmpty
-                    ? _getProfileImageProvider(photoBase64)
-                    : null;
+          userData = snapshot.data!.data() as Map<String, dynamic>;
+          final name = userData!['name'] ?? '-';
+          final firstInitial = name.isNotEmpty ? name[0].toUpperCase() : '-';
+          final photoBase64 = userData!['photoBase64'] ?? '';
+          final imageProvider =
+              photoBase64.isNotEmpty
+                  ? _getProfileImageProvider(photoBase64)
+                  : null;
 
-            return SingleChildScrollView(
-              padding: const EdgeInsets.all(20.0),
-              child: Column(
-                children: [
-                  Stack(
-                    alignment: Alignment.bottomRight,
-                    children: [
-                      CircleAvatar(
-                        radius: 60,
-                        backgroundColor: Colors.green.shade100,
-                        backgroundImage: imageProvider,
-                        child:
-                            imageProvider == null
-                                ? Text(
-                                  firstInitial,
-                                  style: const TextStyle(
-                                    fontSize: 40,
-                                    color: Colors.green,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                )
-                                : null,
-                      ),
-                      Positioned(
-                        bottom: 4,
-                        right: 4,
-                        child: GestureDetector(
-                          onTap: _changeProfileImage,
-                          child: CircleAvatar(
-                            backgroundColor: Colors.white,
-                            radius: 20,
-                            child: const Icon(
-                              Icons.camera_alt,
-                              color: Colors.green,
-                            ),
+          return SingleChildScrollView(
+            padding: const EdgeInsets.all(20.0),
+            child: Column(
+              children: [
+                Stack(
+                  alignment: Alignment.bottomRight,
+                  children: [
+                    CircleAvatar(
+                      radius: 60,
+                      backgroundColor: Colors.green.shade100,
+                      backgroundImage: imageProvider,
+                      child:
+                          imageProvider == null
+                              ? Text(
+                                firstInitial,
+                                style: const TextStyle(
+                                  fontSize: 40,
+                                  color: Colors.green,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              )
+                              : null,
+                    ),
+                    Positioned(
+                      bottom: 4,
+                      right: 4,
+                      child: GestureDetector(
+                        onTap: _changeProfileImage,
+                        child: CircleAvatar(
+                          backgroundColor: Colors.white,
+                          radius: 20,
+                          child: const Icon(
+                            Icons.camera_alt,
+                            color: Colors.green,
                           ),
                         ),
                       ),
-                    ],
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  name,
+                  style: const TextStyle(
+                    fontSize: 22,
+                    fontWeight: FontWeight.bold,
                   ),
-                  const SizedBox(height: 16),
-                  Text(
-                    name,
-                    style: const TextStyle(
-                      fontSize: 22,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.black87,
+                ),
+                const SizedBox(height: 24),
+                _buildProfileItem(
+                  Icons.account_circle,
+                  'Username',
+                  userData!['username'] ?? '-',
+                ),
+                _buildProfileItem(
+                  Icons.email,
+                  'Email',
+                  userData!['email'] ?? '-',
+                ),
+                _buildProfileItem(
+                  Icons.phone,
+                  'Nomor Telepon',
+                  userData!['phoneNumber'] ?? '-',
+                ),
+                _buildProfileItem(
+                  Icons.location_on,
+                  'Alamat',
+                  userData!['address'] ?? '-',
+                ),
+                _buildProfileItem(
+                  Icons.wc,
+                  'Jenis Kelamin',
+                  userData!['gender'] ?? '-',
+                ),
+                _buildProfileItem(
+                  Icons.badge,
+                  'Role',
+                  userData!['role'] ?? '-',
+                ),
+                const SizedBox(height: 24),
+                ElevatedButton.icon(
+                  onPressed: () async {
+                    final shouldRefresh = await Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder:
+                            (_) => EditProfileScreen(
+                              currentData: userData!,
+                              userDocRef: userDocRef,
+                            ),
+                      ),
+                    );
+
+                    if (shouldRefresh == true) _fetchUserData();
+                  },
+                  icon: const Icon(Icons.edit),
+                  label: const Text('Edit Profil'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.green,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 24,
+                      vertical: 12,
                     ),
                   ),
-                  const SizedBox(height: 24),
-                  _buildProfileItem(
-                    Icons.account_circle,
-                    'Username',
-                    userData!['username'] ?? '-',
-                  ),
-                  _buildProfileItem(
-                    Icons.email,
-                    'Email',
-                    userData!['email'] ?? '-',
-                  ),
-                  _buildProfileItem(
-                    Icons.phone,
-                    'Nomor Telepon',
-                    userData!['phoneNumber'] ?? '-',
-                  ),
-                  _buildProfileItem(
-                    Icons.location_on,
-                    'Alamat',
-                    userData!['address'] ?? '-',
-                  ),
-                  _buildProfileItem(
-                    Icons.wc,
-                    'Jenis Kelamin',
-                    userData!['gender'] ?? '-',
-                  ),
-                  _buildProfileItem(
-                    Icons.badge,
-                    'Role',
-                    userData!['role'] ?? '-',
-                  ),
-                  const SizedBox(height: 24),
-                  ElevatedButton.icon(
-                    onPressed: () {
-                      // Navigasi ke halaman edit profil jika tersedia
-                    },
-                    icon: const Icon(Icons.edit, color: Colors.white),
-                    label: const Text('Edit Profil'),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.green,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 24,
-                        vertical: 12,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            );
-          },
-        ),
+                ),
+              ],
+            ),
+          );
+        },
       ),
     );
   }
