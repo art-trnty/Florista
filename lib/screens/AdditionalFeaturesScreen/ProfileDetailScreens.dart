@@ -7,7 +7,6 @@ import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:florista/screens/AdditionalFeaturesScreen/EditProfileScreen.dart';
 import 'package:florista/screens/SignInScreen.dart';
 
-
 class ProfileDetailScreen extends StatefulWidget {
   const ProfileDetailScreen({super.key});
 
@@ -190,7 +189,6 @@ class _ProfileDetailScreenState extends State<ProfileDetailScreen> {
             ),
           ),
         ],
-
       ),
       body: Stack(
         children: [
@@ -332,8 +330,11 @@ class _ProfileDetailScreenState extends State<ProfileDetailScreen> {
 
                     if (shouldRefresh == true) _fetchUserData();
                   },
-                  icon: const Icon(Icons.edit),
-                  label: const Text('Edit Profil'),
+                  icon: const Icon(Icons.edit, color: Colors.white),
+                  label: const Text(
+                    'Edit Profile',
+                    style: TextStyle(color: Colors.white),
+                  ),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.green,
                     shape: RoundedRectangleBorder(
