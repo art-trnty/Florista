@@ -399,13 +399,13 @@ class _AboutAppScreenState extends State<AboutAppScreen> {
                                 imagePath: "assets/Additional/wulann.jpg",
                               ),
                               buildContactCard(
-                                name: "Person 4 - Fikri",
-                                phone: "+62 812-3456-4444",
-                                instagram: "fikri.botani",
+                                name: "Person 4 - Nabila Salwa Zahrani",
+                                phone: "+62 822-9820-3734",
+                                instagram: "nabilaaasz_",
                                 facebook: "facebook.com/fikri.florista",
-                                email: "fikri@florista.id",
+                                email: "nabilasalwazahrani_2226240133@mhs.mdp.ac.id",
                                 address: "Jl. Anggrek No.4, Yogyakarta",
-                                imagePath: "assets/images/admin4.jpg",
+                                imagePath: "assets/images/nabila.jpg",
                               ),
 
                               const SizedBox(height: 16),
