@@ -12,7 +12,9 @@ void main() async {
   await _ensureLocationPermission();
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   await FirebaseAppCheck.instance.activate(
-    webProvider: ReCaptchaV3Provider('recaptcha-v3-site-key'),
+    webProvider: ReCaptchaV3Provider(
+      '6Le0uVorAAAAAAZco5gPJwx8kV8sSpBzkOVy0B9l',
+    ),
   );
   runApp(const MyApp());
 }

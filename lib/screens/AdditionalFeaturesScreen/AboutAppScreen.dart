@@ -27,6 +27,27 @@ class _AboutAppScreenState extends State<AboutAppScreen> {
     _loadCurrentUserUidAndData();
   }
 
+  String _formatPhoneDisplay(String phone) {
+    // Hilangkan semua non-digit kecuali +
+    String clean = phone.replaceAll(RegExp(r'[^\d+]'), '');
+
+    // Ganti +62 atau 62 di awal jadi 0 untuk tampilan
+    if (clean.startsWith('+62')) {
+      clean = '0' + clean.substring(3);
+    } else if (clean.startsWith('62')) {
+      clean = '0' + clean.substring(2);
+    }
+
+    // Pisahkan tiap 4 digit
+    List<String> parts = [];
+    for (int i = 0; i < clean.length; i += 4) {
+      int end = (i + 4 < clean.length) ? i + 4 : clean.length;
+      parts.add(clean.substring(i, end));
+    }
+
+    return parts.join('-');
+  }
+
   Future<void> _loadCurrentUserUidAndData() async {
     final uid = AuthService.currentUserUid;
     if (uid != null) {
@@ -158,13 +179,14 @@ class _AboutAppScreenState extends State<AboutAppScreen> {
                               'https://wa.me/${phone.replaceAll('+', '').replaceAll(' ', '')}',
                             ),
                         child: Text(
-                          "📞 WhatsApp: $phone",
+                          "📞 WhatsApp: ${_formatPhoneDisplay(phone)}",
                           style: const TextStyle(
                             color: Colors.blue,
                             fontSize: 13,
                           ),
                         ),
                       ),
+
                       const SizedBox(height: 4),
                       _buildContactLink(
                         label: "📷 Instagram: @$instagram",
@@ -243,9 +265,7 @@ class _AboutAppScreenState extends State<AboutAppScreen> {
       appBar: AppBar(
         backgroundColor: Colors.green,
         centerTitle: true,
-        iconTheme: const IconThemeData(
-          color: Colors.white,
-        ),
+        iconTheme: const IconThemeData(color: Colors.white),
         leading: const Padding(
           padding: EdgeInsets.only(left: 16.0),
           child: Icon(Icons.contact_page_outlined, color: Colors.white),
@@ -280,7 +300,10 @@ class _AboutAppScreenState extends State<AboutAppScreen> {
         onTap: _onItemTapped,
         items: const [
           BottomNavigationBarItem(icon: Icon(Icons.home), label: "Home"),
-          BottomNavigationBarItem(icon: Icon(Icons.store_sharp), label: "Store"),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.store_sharp),
+            label: "Store",
+          ),
           BottomNavigationBarItem(
             icon: Icon(Icons.favorite),
             label: "Favorite Store",
@@ -291,114 +314,119 @@ class _AboutAppScreenState extends State<AboutAppScreen> {
           ),
         ],
       ),
-      body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            colors: [Color(0xFFE8F5E9), Color(0xFFC8E6C9)],
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-          ),
-        ),
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            children: [
-              const SizedBox(height: 20),
-              Image.asset('assets/images/plant_logo.png', height: 120),
-              const SizedBox(height: 20),
-              Card(
-                elevation: 4,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(16),
+      body:
+          _isLoading
+              ? const Center(child: CircularProgressIndicator())
+              : Container(
+                decoration: const BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [Color(0xFFE8F5E9), Color(0xFFC8E6C9)],
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                  ),
                 ),
-                child: Padding(
-                  padding: const EdgeInsets.all(20.0),
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.all(16.0),
                   child: Column(
                     children: [
-                      const Text(
-                        '- Florista -',
-                        style: TextStyle(
-                          fontSize: 22,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.green,
+                      const SizedBox(height: 20),
+                      Image.asset('assets/images/plant_logo.png', height: 120),
+                      const SizedBox(height: 20),
+                      Card(
+                        elevation: 4,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(16),
                         ),
-                      ),
-                      const SizedBox(height: 16),
-                      const Text(
-                        'Aplikasi ini dibuat untuk membantu Anda menemukan berbagai toko tanaman hias terbaik di sekitar Anda. Dengan antarmuka yang sederhana dan fitur-fitur yang lengkap, Anda bisa mencari, menambahkan favorit, dan mengeksplor berbagai tanaman hias dengan mudah.',
-                        style: TextStyle(fontSize: 16),
-                      ),
-                      const SizedBox(height: 16),
-                      const Divider(),
-                      const SizedBox(height: 12),
-                      const Center(
-                        child: Text(
-                          'Kontak Person',
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.green,
+                        child: Padding(
+                          padding: const EdgeInsets.all(20.0),
+                          child: Column(
+                            children: [
+                              const Text(
+                                '- Florista -',
+                                style: TextStyle(
+                                  fontSize: 22,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.green,
+                                ),
+                              ),
+                              const SizedBox(height: 16),
+                              const Text(
+                                'Aplikasi ini dibuat untuk membantu Anda menemukan berbagai toko tanaman hias terbaik di sekitar Anda. Dengan antarmuka yang sederhana dan fitur-fitur yang lengkap, Anda bisa mencari, menambahkan favorit, dan mengeksplor berbagai tanaman hias dengan mudah.',
+                                style: TextStyle(fontSize: 16),
+                              ),
+                              const SizedBox(height: 16),
+                              const Divider(),
+                              const SizedBox(height: 12),
+                              const Center(
+                                child: Text(
+                                  'Kontak Person',
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.green,
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(height: 16),
+                              const Divider(),
+                              const SizedBox(height: 12),
+                              buildContactCard(
+                                name: "Person 1 - Rara Ananta Bunga",
+                                phone: "+62 89603788974",
+                                instagram: "art.trnty",
+                                facebook: "art.trnty",
+                                email: "rara.anantabunga03@gmail.com",
+                                address: "Jl. H Sanusi No.3231, Suka Bangun",
+                                imagePath: "assets/Additional/art.trnty.jpeg",
+                              ),
+                              buildContactCard(
+                                name: "Person 2 - Revina Trisna Aini",
+                                phone: "+62 83178355461",
+                                instagram: "cacicillo",
+                                facebook: "Revina Trisna Aini",
+                                email: "trisnaainirevina@gmail.com",
+                                address: "Jln. Mayorzen RT 38, RW.07, No.05",
+                                imagePath: "assets/Additional/Revina.jpg",
+                              ),
+                              buildContactCard(
+                                name: "Person 3 - Komariah Wulandari",
+                                phone: "+62 82387249538",
+                                instagram: "w_lann1",
+                                facebook: "Komariah Wulandari",
+                                email:
+                                    "komariahwulandari_2226240119@mhs.mdp.ac.id",
+                                address: "Jl. Perintis Kemerdekaan, Palembang",
+                                imagePath: "assets/Additional/wulann.jpg",
+                              ),
+                              buildContactCard(
+                                name: "Person 4 - Fikri",
+                                phone: "+62 812-3456-4444",
+                                instagram: "fikri.botani",
+                                facebook: "facebook.com/fikri.florista",
+                                email: "fikri@florista.id",
+                                address: "Jl. Anggrek No.4, Yogyakarta",
+                                imagePath: "assets/images/admin4.jpg",
+                              ),
+
+                              const SizedBox(height: 16),
+                              const Divider(),
+                              const SizedBox(height: 8),
+                              const Text(
+                                'Dikembangkan oleh Tim Florista.\n© 2025 Florista Inc.',
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  color: Colors.grey,
+                                ),
+                                textAlign: TextAlign.center,
+                              ),
+                            ],
                           ),
                         ),
-                      ),
-                      const SizedBox(height: 16),
-                      const Divider(),
-                      const SizedBox(height: 12),
-                      buildContactCard(
-                        name: "Person 1 - Rara Ananta Bunga",
-                        phone: "+62 896-0378-8974",
-                        instagram: "art.trnty",
-                        facebook: "art.trnty",
-                        email: "rara.anantabunga03@gmail.com",
-                        address: "Jl. H Sanusi No.3231, Suka Bangun",
-                        imagePath: "assets/Additional/art.trnty.jpeg",
-                      ),
-                      buildContactCard(
-                        name: "Person 2 - Revina Trisna Aini",
-                        phone: "+62 831-7835-5461",
-                        instagram: "cacicillo",
-                        facebook: "Revina Trisna Aini",
-                        email: "trisnaainirevina@gmail.com",
-                        address: "Jln. Mayorzen RT 38, RW.07, No.05",
-                        imagePath: "assets/Additional/Revina.jpg",
-                      ),
-                      buildContactCard(
-                        name: "Person 3 - Komariah Wulandari",
-                        phone: "+62 823-8724-9538",
-                        instagram: "w_lann1",
-                        facebook: "Komariah Wulandari",
-                        email: "komariahwulandari_2226240119@mhs.mdp.ac.id",
-                        address: "Jl. Perintis Kemerdekaan, Palembang",
-                        imagePath: "assets/Additional/wulann.jpg",
-                      ),
-                      buildContactCard(
-                        name: "Person 4 - Fikri",
-                        phone: "+62 812-3456-4444",
-                        instagram: "fikri.botani",
-                        facebook: "facebook.com/fikri.florista",
-                        email: "fikri@florista.id",
-                        address: "Jl. Anggrek No.4, Yogyakarta",
-                        imagePath: "assets/images/admin4.jpg",
-                      ),
-
-                      const SizedBox(height: 16),
-                      const Divider(),
-                      const SizedBox(height: 8),
-                      const Text(
-                        'Dikembangkan oleh Tim Florista.\n© 2025 Florista Inc.',
-                        style: TextStyle(fontSize: 14, color: Colors.grey),
-                        textAlign: TextAlign.center,
                       ),
                     ],
                   ),
                 ),
               ),
-            ],
-          ),
-        ),
-      ),
     );
   }
 }
