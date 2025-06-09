@@ -60,9 +60,37 @@ class _FavoriteStoreScreenState extends State<FavoriteStoreScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Toko Favorit"),
-        backgroundColor: Colors.green[700],
-        automaticallyImplyLeading: false, // <-- tambahkan baris ini
+        backgroundColor: Colors.green,
+        centerTitle: true,
+        iconTheme: const IconThemeData(
+          color: Colors.white,
+        ), // tetap jika ada ikon lain
+        leading: const Padding(
+          padding: EdgeInsets.only(left: 16.0),
+          child: Icon(Icons.favorite, color: Colors.red),
+        ),
+        title: const Text(
+          'Favorite Store',
+          style: TextStyle(
+            fontSize: 24,
+            fontWeight: FontWeight.bold,
+            letterSpacing: 2.0,
+            color: Colors.white,
+            shadows: [
+              Shadow(
+                offset: Offset(2.0, 2.0),
+                blurRadius: 3.0,
+                color: Colors.black45,
+              ),
+            ],
+          ),
+        ),
+        actions: const [
+          Padding(
+            padding: EdgeInsets.only(right: 16.0),
+            child: Icon(Icons.favorite, color: Colors.red),
+          ),
+        ],
       ),
       bottomNavigationBar: BottomNavigationBar(
         selectedItemColor: Colors.green,

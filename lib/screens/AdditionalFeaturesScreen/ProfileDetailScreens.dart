@@ -164,11 +164,30 @@ class _ProfileDetailScreenState extends State<ProfileDetailScreen> {
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
-        title: const Text('Profil Saya'),
         backgroundColor: Colors.green,
         centerTitle: true,
-        actions: [
-          IconButton(icon: const Icon(Icons.logout), onPressed: _logout),
+        iconTheme: const IconThemeData(color: Colors.white), // Icon back putih
+        title: const Text(
+          'Profile',
+          style: TextStyle(
+            fontSize: 24,
+            fontWeight: FontWeight.bold,
+            letterSpacing: 2.0,
+            color: Colors.white,
+            shadows: [
+              Shadow(
+                offset: Offset(2.0, 2.0),
+                blurRadius: 3.0,
+                color: Colors.black45,
+              ),
+            ],
+          ),
+        ),
+        actions: const [
+          Padding(
+            padding: EdgeInsets.only(right: 16.0),
+            child: Icon(Icons.person, color: Colors.white),
+          ),
         ],
       ),
       body: Stack(

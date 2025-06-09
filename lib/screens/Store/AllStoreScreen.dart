@@ -147,20 +147,38 @@ class _AllStoresScreenState extends State<AllStoresScreen>
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        automaticallyImplyLeading: false, // << tambahkan ini
-        title: const Text("Semua Toko Tanaman Hias"),
         backgroundColor: Colors.green,
-        foregroundColor: Colors.white,
-        elevation: 0,
-        actions: [
-          if (_stores.any((store) => store.owner == _currentUserUid))
-            IconButton(
-              icon: const Icon(Icons.edit),
-              onPressed: _showStoreSelectionDialog,
-            ),
+        centerTitle: true,
+        iconTheme: const IconThemeData(
+          color: Colors.white,
+        ), // tetap jika ada ikon lain
+        leading: const Padding(
+          padding: EdgeInsets.only(left: 16.0),
+          child: Icon(Icons.store_outlined, color: Colors.white),
+        ),
+        title: const Text(
+          'All Store',
+          style: TextStyle(
+            fontSize: 24,
+            fontWeight: FontWeight.bold,
+            letterSpacing: 2.0,
+            color: Colors.white,
+            shadows: [
+              Shadow(
+                offset: Offset(2.0, 2.0),
+                blurRadius: 3.0,
+                color: Colors.black45,
+              ),
+            ],
+          ),
+        ),
+        actions: const [
+          Padding(
+            padding: EdgeInsets.only(right: 16.0),
+            child: Icon(Icons.store_outlined, color: Colors.white),
+          ),
         ],
       ),
-
       body: Container(
         decoration: const BoxDecoration(
           gradient: LinearGradient(

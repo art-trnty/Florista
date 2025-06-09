@@ -41,69 +41,30 @@ class _StoreDetailScreenState extends State<StoreDetailScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Detail Store"),
         backgroundColor: Colors.green,
-        actions: [
-          if (isOwner) ...[
-            IconButton(
-              icon: const Icon(Icons.edit),
-              tooltip: 'Edit Biodata Toko',
-              onPressed: () async {
-                final result = await Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) => EditStoreScreen(store: _store),
-                  ),
-                );
-
-                if (result == true) {
-                  setState(() {
-                    _isLoading = true;
-                  });
-
-                  showDialog(
-                    context: context,
-                    barrierDismissible: false,
-                    builder:
-                        (_) => const Center(child: CircularProgressIndicator()),
-                  );
-
-                  final snapshot =
-                      await FirebaseFirestore.instance
-                          .collection('stores')
-                          .doc(_store.id)
-                          .get();
-
-                  final updatedStore = StoreModel.fromMap(
-                    snapshot.data()!,
-                    snapshot.id,
-                  );
-
-                  Navigator.pop(context); // Tutup dialog loading
-
-                  setState(() {
-                    _store = updatedStore;
-                    _isLoading = false;
-                  });
-                }
-              },
-            ),
-            if (selectedProductIds.isNotEmpty)
-              IconButton(
-                icon:
-                    isDeleting
-                        ? const SizedBox(
-                          width: 24,
-                          height: 24,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2,
-                            color: Colors.white,
-                          ),
-                        )
-                        : const Icon(Icons.delete_forever),
-                onPressed: isDeleting ? null : _deleteSelectedProducts,
+        centerTitle: true,
+        iconTheme: const IconThemeData(color: Colors.white), // Icon back putih
+        title: const Text(
+          'Store',
+          style: TextStyle(
+            fontSize: 24,
+            fontWeight: FontWeight.bold,
+            letterSpacing: 2.0,
+            color: Colors.white,
+            shadows: [
+              Shadow(
+                offset: Offset(2.0, 2.0),
+                blurRadius: 3.0,
+                color: Colors.black45,
               ),
-          ],
+            ],
+          ),
+        ),
+        actions: const [
+          Padding(
+            padding: EdgeInsets.only(right: 16.0),
+            child: Icon(Icons.store, color: Colors.white),
+          ),
         ],
       ),
       body:
@@ -140,8 +101,8 @@ class _StoreDetailScreenState extends State<StoreDetailScreen> {
                               unselectedLabelColor: Colors.grey,
                               indicatorColor: Colors.green,
                               tabs: [
-                                Tab(text: 'Product'),
-                                Tab(text: 'Reviews'),
+                                Tab(text: 'ProduK'),
+                                Tab(text: 'Komentar'),
                                 Tab(text: 'Biodata Toko'),
                               ],
                             ),
@@ -175,7 +136,7 @@ class _StoreDetailScreenState extends State<StoreDetailScreen> {
               ),
       floatingActionButton:
           isOwner
-              ? FloatingActionButton.extended(
+              ? FloatingActionButton(
                 onPressed: () {
                   Navigator.push(
                     context,
@@ -188,8 +149,7 @@ class _StoreDetailScreenState extends State<StoreDetailScreen> {
                     ),
                   );
                 },
-                icon: const Icon(Icons.add),
-                label: const Text("Tambah Produk"),
+                child: const Icon(Icons.add),
                 backgroundColor: Colors.green,
               )
               : null,

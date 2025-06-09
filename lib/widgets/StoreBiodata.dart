@@ -91,14 +91,10 @@ class StoreBiodata extends StatelessWidget {
           padding: const EdgeInsets.all(16.0),
           child: ListView(
             children: [
-              const Text(
-                "Biodata Toko",
-                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 16),
+              const SizedBox(height: 4),
               _buildInfoTile("Nama Toko", data['name'], Icons.store),
               _buildInfoTile(
-                "Deskripsi",
+                "Deskripsi Toko",
                 data['description'],
                 Icons.description,
               ),
