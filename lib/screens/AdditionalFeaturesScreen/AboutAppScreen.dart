@@ -403,12 +403,12 @@ class _AboutAppScreenState extends State<AboutAppScreen> {
                               buildContactCard(
                                 name: "Person 4 - Nabila Salwa Zahrani",
                                 phone: "+62 82298203734",
-                                instagram: "nabilaaasz_",
+                                instagram: "nabilaaasz__",
                                 facebook: "nabila.salwazahrani",
                                 email:
                                     "nabilasalwazahrani_2226240133@mhs.mdp.ac.id",
-                                address: "",
-                                imagePath: "assets/Additional/",
+                                address: "Jl. Gersik, Kota Palembang, ",
+                                imagePath: "assets/Additional/nabila.jpg",
                               ),
 
                               const SizedBox(height: 16),
