@@ -21,7 +21,6 @@ class ProductModel {
     required this.owner,
   });
 
-  /// Convert model to Firestore map (excluding `id`)
   Map<String, dynamic> toMap() {
     return {
       'storeId': storeId,

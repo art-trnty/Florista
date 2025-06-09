@@ -27,6 +27,17 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   bool isSaving = false;
   late String originalEmail;
   bool isEmailChanged = false;
+  double passwordStrength = 0.0;
+  String passwordStrengthLabel = '';
+  Color passwordStrengthColor = Colors.grey;
+  final oldPasswordController = TextEditingController();
+  final newPasswordController = TextEditingController();
+  final confirmPasswordController = TextEditingController();
+  bool isPasswordSectionExpanded = false;
+  bool isChangingPassword = false;
+  bool obscureOld = true;
+  bool obscureNew = true;
+  bool obscureConfirm = true;
 
   @override
   void initState() {
@@ -86,6 +97,37 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     return password;
   }
 
+  void _updatePasswordStrength(String password) {
+    final strength = _getPasswordStrength(password);
+
+    setState(() {
+      passwordStrength = strength;
+
+      if (strength < 0.3) {
+        passwordStrengthLabel = 'Lemah';
+        passwordStrengthColor = Colors.red;
+      } else if (strength < 0.7) {
+        passwordStrengthLabel = 'Sedang';
+        passwordStrengthColor = Colors.orange;
+      } else {
+        passwordStrengthLabel = 'Kuat';
+        passwordStrengthColor = Colors.green;
+      }
+    });
+  }
+
+  double _getPasswordStrength(String password) {
+    int score = 0;
+
+    if (password.length >= 6) score++;
+    if (password.length >= 10) score++;
+    if (RegExp(r'[A-Z]').hasMatch(password)) score++;
+    if (RegExp(r'[0-9]').hasMatch(password)) score++;
+    if (RegExp(r'[!@#$%^&*(),.?":{}|<>]').hasMatch(password)) score++;
+
+    return (score / 5).clamp(0.0, 1.0);
+  }
+
   Future<void> _sendEmailVerificationCode() async {
     try {
       final user = FirebaseAuth.instance.currentUser;
@@ -119,6 +161,68 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     }
   }
 
+  Future<void> _changePassword() async {
+    final oldPassword = oldPasswordController.text.trim();
+    final newPassword = newPasswordController.text.trim();
+    final confirmPassword = confirmPasswordController.text.trim();
+    if (oldPassword == newPassword) {
+      _showError('Password baru tidak boleh sama dengan password lama.');
+      return;
+    }
+
+    if (oldPassword.isEmpty || newPassword.isEmpty || confirmPassword.isEmpty) {
+      _showError('Semua kolom password wajib diisi.');
+      return;
+    }
+
+    if (newPassword != confirmPassword) {
+      _showError('Konfirmasi password tidak cocok.');
+      return;
+    }
+
+    if (newPassword.length < 6) {
+      _showError('Password baru harus minimal 6 karakter.');
+      return;
+    }
+
+    setState(() => isChangingPassword = true);
+
+    try {
+      final user = FirebaseAuth.instance.currentUser;
+
+      if (user != null && user.email != null) {
+        final credential = EmailAuthProvider.credential(
+          email: user.email!,
+          password: oldPassword,
+        );
+
+        await user.reauthenticateWithCredential(credential);
+        await user.updatePassword(newPassword);
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Password berhasil diubah')),
+        );
+
+        oldPasswordController.clear();
+        newPasswordController.clear();
+        confirmPasswordController.clear();
+        setState(() {
+          isPasswordSectionExpanded = false;
+        });
+      }
+    } on FirebaseAuthException catch (e) {
+      if (e.code == 'wrong-password') {
+        _showError('Password lama salah.');
+      } else {
+        _showError('Gagal mengubah password: ${e.message}');
+      }
+    } catch (e) {
+      _showError('Gagal mengubah password: $e');
+    } finally {
+      setState(() => isChangingPassword = false);
+    }
+  }
+
   Future<void> _saveChanges() async {
     if (_formKey.currentState!.validate()) {
       setState(() => isSaving = true);
@@ -128,6 +232,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         final newUsername = usernameController.text.trim();
         final newEmail = emailController.text.trim();
         final newPhone = phoneController.text.trim();
+
         bool isDuplicate(String field, String value) {
           return snapshot.docs.any(
             (doc) => doc.id != widget.userDocRef.id && doc.get(field) == value,
@@ -169,6 +274,19 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   }
 
   @override
+  void dispose() {
+    nameController.dispose();
+    usernameController.dispose();
+    emailController.dispose();
+    phoneController.dispose();
+    addressController.dispose();
+    oldPasswordController.dispose();
+    newPasswordController.dispose();
+    confirmPasswordController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
@@ -207,7 +325,6 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                   key: _formKey,
                   child: ListView(
                     children: [
-                      const SizedBox(height: 8),
                       const Text(
                         'Informasi Dasar',
                         style: TextStyle(
@@ -216,7 +333,6 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                         ),
                       ),
                       const Divider(),
-
                       _buildTextField(
                         nameController,
                         'Nama Lengkap',
@@ -227,14 +343,13 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                         'Username',
                         icon: Icons.alternate_email,
                       ),
-
                       _buildTextField(
                         emailController,
                         'Email',
                         keyboardType: TextInputType.emailAddress,
                         icon: Icons.email,
                       ),
-                      if (isEmailChanged) ...[
+                      if (isEmailChanged)
                         Padding(
                           padding: const EdgeInsets.only(top: 8.0),
                           child: ElevatedButton.icon(
@@ -256,8 +371,6 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                             ),
                           ),
                         ),
-                        const SizedBox(height: 16),
-                      ],
                       _buildTextField(
                         phoneController,
                         'Nomor Telepon',
@@ -277,26 +390,130 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                       ),
 
                       const SizedBox(height: 24),
-                      ElevatedButton.icon(
-                        onPressed: _saveChanges,
-                        icon: const Icon(Icons.save, color: Colors.white),
-                        label: const Text(
-                          'Simpan Perubahan',
-                          style: TextStyle(color: Colors.white),
-                        ),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.green,
-                          padding: const EdgeInsets.symmetric(vertical: 16),
-                          textStyle: const TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                          ),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(16),
-                          ),
-                          elevation: 4,
+                      // Dropdown Ubah Password
+                      GestureDetector(
+                        onTap: () {
+                          setState(() {
+                            isPasswordSectionExpanded =
+                                !isPasswordSectionExpanded;
+                          });
+                        },
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            const Text(
+                              'Ubah Password',
+                              style: TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            Icon(
+                              isPasswordSectionExpanded
+                                  ? Icons.expand_less
+                                  : Icons.expand_more,
+                            ),
+                          ],
                         ),
                       ),
+
+                      if (isPasswordSectionExpanded) ...[
+                        _buildPasswordField(
+                          oldPasswordController,
+                          'Password Lama',
+                          obscureText: obscureOld,
+                          toggleObscure:
+                              () => setState(() => obscureOld = !obscureOld),
+                        ),
+                        _buildPasswordField(
+                          newPasswordController,
+                          'Password Baru',
+                          obscureText: obscureNew,
+                          toggleObscure:
+                              () => setState(() => obscureNew = !obscureNew),
+                          onChanged: _updatePasswordStrength,
+                        ),
+                        _buildPasswordField(
+                          confirmPasswordController,
+                          'Konfirmasi Password Baru',
+                          obscureText: obscureConfirm,
+                          toggleObscure:
+                              () => setState(
+                                () => obscureConfirm = !obscureConfirm,
+                              ),
+                        ),
+                        if (newPasswordController.text.isNotEmpty)
+                          Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 8),
+                            child: Row(
+                              children: [
+                                Expanded(
+                                  flex: 4,
+                                  child: LinearProgressIndicator(
+                                    value: passwordStrength,
+                                    backgroundColor: Colors.grey[300],
+                                    color: passwordStrengthColor,
+                                    minHeight: 8,
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                ),
+                                const SizedBox(width: 12),
+                                Expanded(
+                                  flex: 1,
+                                  child: Text(
+                                    passwordStrengthLabel,
+                                    style: TextStyle(
+                                      color: passwordStrengthColor,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        const SizedBox(height: 16),
+                        ElevatedButton.icon(
+                          onPressed:
+                              isChangingPassword ? null : _changePassword,
+                          icon: const Icon(Icons.lock, color: Colors.white),
+                          label: const Text(
+                            'Simpan Password',
+                            style: TextStyle(color: Colors.white),
+                          ),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.green,
+                            padding: const EdgeInsets.symmetric(vertical: 12),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                          ),
+                        ),
+                      ],
+
+                      const SizedBox(height: 24),
+
+                      // Tampilkan tombol simpan perubahan HANYA jika bagian password tidak terbuka
+                      if (!isPasswordSectionExpanded)
+                        ElevatedButton.icon(
+                          onPressed: _saveChanges,
+                          icon: const Icon(Icons.save, color: Colors.white),
+                          label: const Text(
+                            'Simpan Perubahan',
+                            style: TextStyle(color: Colors.white),
+                          ),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.green,
+                            padding: const EdgeInsets.symmetric(vertical: 16),
+                            textStyle: const TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                            ),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(16),
+                            ),
+                            elevation: 4,
+                          ),
+                        ),
                     ],
                   ),
                 ),
@@ -340,6 +557,50 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
           validator:
               (value) =>
                   value == null || value.isEmpty ? 'Tidak boleh kosong' : null,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildPasswordField(
+    TextEditingController controller,
+    String label, {
+    required bool obscureText,
+    required VoidCallback toggleObscure,
+    void Function(String)? onChanged,
+  }) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8),
+      child: Container(
+        decoration: BoxDecoration(
+          color: Colors.grey[100],
+          borderRadius: BorderRadius.circular(12),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black12,
+              blurRadius: 6,
+              offset: Offset(0, 3),
+            ),
+          ],
+        ),
+        child: TextFormField(
+          controller: controller,
+          obscureText: obscureText,
+          onChanged: onChanged,
+          decoration: InputDecoration(
+            prefixIcon: const Icon(Icons.lock_outline),
+            labelText: label,
+            suffixIcon: IconButton(
+              icon: Icon(obscureText ? Icons.visibility_off : Icons.visibility),
+              onPressed: toggleObscure,
+            ),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide.none,
+            ),
+            filled: true,
+            fillColor: Colors.grey[100],
+          ),
         ),
       ),
     );

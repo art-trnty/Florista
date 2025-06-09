@@ -28,17 +28,13 @@ class _AboutAppScreenState extends State<AboutAppScreen> {
   }
 
   String _formatPhoneDisplay(String phone) {
-    // Hilangkan semua non-digit kecuali +
     String clean = phone.replaceAll(RegExp(r'[^\d+]'), '');
-
-    // Ganti +62 atau 62 di awal jadi 0 untuk tampilan
     if (clean.startsWith('+62')) {
       clean = '0' + clean.substring(3);
     } else if (clean.startsWith('62')) {
       clean = '0' + clean.substring(2);
     }
 
-    // Pisahkan tiap 4 digit
     List<String> parts = [];
     for (int i = 0; i < clean.length; i += 4) {
       int end = (i + 4 < clean.length) ? i + 4 : clean.length;
@@ -58,7 +54,7 @@ class _AboutAppScreenState extends State<AboutAppScreen> {
     }
 
     setState(() {
-      _isLoading = false; // Set selesai loading
+      _isLoading = false;
     });
   }
 
@@ -392,7 +388,7 @@ class _AboutAppScreenState extends State<AboutAppScreen> {
                                 name: "Person 3 - Komariah Wulandari",
                                 phone: "+62 82387249538",
                                 instagram: "w_lann1",
-                                facebook: "Komariah Wulandari",
+                                facebook: "komariah.wulandari.7",
                                 email:
                                     "komariahwulandari_2226240119@mhs.mdp.ac.id",
                                 address: "Jl. Perintis Kemerdekaan, Palembang",
@@ -400,12 +396,13 @@ class _AboutAppScreenState extends State<AboutAppScreen> {
                               ),
                               buildContactCard(
                                 name: "Person 4 - Nabila Salwa Zahrani",
-                                phone: "+62 822-9820-3734",
+                                phone: "+62 82298203734",
                                 instagram: "nabilaaasz_",
-                                facebook: "facebook.com/fikri.florista",
-                                email: "nabilasalwazahrani_2226240133@mhs.mdp.ac.id",
-                                address: "Jl. Anggrek No.4, Yogyakarta",
-                                imagePath: "assets/images/nabila.jpg",
+                                facebook: "nabila.salwazahrani",
+                                email:
+                                    "nabilasalwazahrani_2226240133@mhs.mdp.ac.id",
+                                address: "",
+                                imagePath: "assets/Additional/",
                               ),
 
                               const SizedBox(height: 16),

@@ -7,7 +7,7 @@ class StoreService {
         await FirebaseFirestore.instance.collection('stores').get();
 
     return snapshot.docs
-        .map((doc) => StoreModel.fromMap(doc.data(), doc.id)) // ✅ Kirim doc.id
+        .map((doc) => StoreModel.fromMap(doc.data(), doc.id))
         .toList();
   }
 

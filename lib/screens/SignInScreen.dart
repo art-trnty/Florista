@@ -230,40 +230,31 @@ class SignInScreenState extends State<SignInScreen> {
   void _signIn() async {
     final input = _emailOrUsernameController.text.trim();
     final password = _passwordController.text;
-
     if (input.isEmpty || password.isEmpty) {
       _showErrorMessage('Email/Username dan password wajib diisi.');
       return;
     }
-
     setState(() => _isLoading = true);
-
     try {
       String email;
-
-      // Check if input is an email
       bool isEmail = RegExp(
         r"^[a-zA-Z0-9.a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@"
         r"[a-zA-Z0-9]+\.[a-zA-Z]+",
       ).hasMatch(input);
-
       if (isEmail) {
         email = input;
       } else {
-        // Search for email by username
         final querySnapshot =
             await FirebaseFirestore.instance
                 .collection('users')
                 .where('username', isEqualTo: input)
                 .limit(1)
                 .get();
-
         if (querySnapshot.docs.isEmpty) {
           _showErrorMessage('Username tidak ditemukan.');
           setState(() => _isLoading = false);
           return;
         }
-
         email = querySnapshot.docs.first['email'];
       }
 
@@ -271,7 +262,6 @@ class SignInScreenState extends State<SignInScreen> {
         email: email,
         password: password,
       );
-
       _showSuccessMessage("Login berhasil!");
       Navigator.pushReplacement(
         context,

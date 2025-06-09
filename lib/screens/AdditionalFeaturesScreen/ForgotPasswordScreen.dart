@@ -60,7 +60,6 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
     if (!_formKey.currentState!.validate()) return;
     final input = _inputController.text.trim();
     setState(() => _isLoading = true);
-
     try {
       String email = input;
       if (!RegExp(r"^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$").hasMatch(input)) {
@@ -84,7 +83,6 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
 
         email = querySnapshot.docs.first['email'];
       }
-
       await _sendPasswordResetEmail(email);
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(

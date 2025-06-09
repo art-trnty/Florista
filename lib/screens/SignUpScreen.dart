@@ -469,20 +469,14 @@ class SignUpScreenState extends State<SignUpScreen> {
       );
       return;
     }
-
     setState(() => _isLoading = true);
-
     try {
       final userCredential = await FirebaseAuth.instance
           .createUserWithEmailAndPassword(email: email, password: password);
       final user = userCredential.user;
-
       if (user != null && !user.emailVerified) {
         await user.sendEmailVerification();
-
-        // Tampilkan dialog menunggu verifikasi
         await _showEmailVerificationDialog(user);
-
         await user.reload(); // Refresh status user
         if (FirebaseAuth.instance.currentUser!.emailVerified) {
           // Jika terverifikasi, simpan ke Firestore
@@ -498,12 +492,10 @@ class SignUpScreenState extends State<SignUpScreen> {
                 'role': role,
                 'email': email,
               });
-
           _showSuccessMessage(
             'Email terverifikasi. Akun berhasil didaftarkan!',
           );
         } else {
-          // Hapus akun jika belum verifikasi
           await user.delete();
           _showErrorMessage('Email belum diverifikasi. Akun tidak dibuat.');
         }

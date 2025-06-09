@@ -73,18 +73,14 @@ class WelcomeScreen extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            // Ilustrasi Gambar
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 20),
               child: Image.asset(
-                'assets/Additional/NatureBloom.jpg', // kamu perlu siapkan ilustrasinya
+                'assets/Additional/NatureBloom.jpg',
                 height: 250,
               ),
             ),
-
             const SizedBox(height: 20),
-
-            // Judul
             const Text(
               'Selamat Datang di Florista',
               style: TextStyle(
@@ -94,17 +90,13 @@ class WelcomeScreen extends StatelessWidget {
               ),
               textAlign: TextAlign.center,
             ),
-
             const SizedBox(height: 12),
-
             const Text(
               'Jelajahi koleksi bunga terbaik dan \ntemukan pesona alam yang memikat.',
               style: TextStyle(fontSize: 16, color: Color(0xFF555555)),
               textAlign: TextAlign.center,
             ),
-
             const SizedBox(height: 40),
-
             GestureDetector(
               onTap: () {
                 Navigator.push(

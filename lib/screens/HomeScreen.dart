@@ -48,20 +48,15 @@ class _HomeScreenState extends State<HomeScreen> {
   void _onItemTapped(int index) {
     switch (index) {
       case 0:
-        // Navigasi ke HomeScreen (halaman utama)
         Navigator.of(context).popUntil((route) => route.isFirst);
         break;
-
       case 1:
-        // Navigasi ke AllStoresScreen
         Navigator.push(
           context,
           MaterialPageRoute(builder: (context) => const AllStoresScreen()),
         );
         break;
-
       case 2:
-        // Navigasi ke FavoriteStoreScreen, jika user sudah login
         if (_currentUserUid != null) {
           Navigator.push(
             context,
@@ -81,13 +76,11 @@ class _HomeScreenState extends State<HomeScreen> {
         break;
 
       case 3:
-        // Navigasi ke AboutAppScreen
         Navigator.push(
           context,
           MaterialPageRoute(builder: (context) => const AboutAppScreen()),
         );
         break;
-
       default:
         break;
     }
@@ -288,7 +281,10 @@ class _HomeScreenState extends State<HomeScreen> {
         onTap: _onItemTapped,
         items: const [
           BottomNavigationBarItem(icon: Icon(Icons.home), label: "Home"),
-          BottomNavigationBarItem(icon: Icon(Icons.store_sharp), label: "Store"),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.store_sharp),
+            label: "Store",
+          ),
           BottomNavigationBarItem(
             icon: Icon(Icons.favorite),
             label: "Favorite Store",
@@ -311,7 +307,6 @@ class _HomeScreenState extends State<HomeScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Header lokasi + profil
               Padding(
                 padding: const EdgeInsets.all(16.0),
                 child: Row(

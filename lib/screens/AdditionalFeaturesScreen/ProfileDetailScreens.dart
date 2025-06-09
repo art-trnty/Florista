@@ -225,7 +225,6 @@ class _ProfileDetailScreenState extends State<ProfileDetailScreen> {
           if (!snapshot.hasData || !snapshot.data!.exists) {
             return const Center(child: Text('Data profil tidak ditemukan.'));
           }
-
           userData = snapshot.data!.data() as Map<String, dynamic>;
           final name = userData!['name'] ?? '-';
           final firstInitial = name.isNotEmpty ? name[0].toUpperCase() : '-';
@@ -234,7 +233,6 @@ class _ProfileDetailScreenState extends State<ProfileDetailScreen> {
               photoBase64.isNotEmpty
                   ? _getProfileImageProvider(photoBase64)
                   : null;
-
           return SingleChildScrollView(
             padding: const EdgeInsets.all(20.0),
             child: Column(
