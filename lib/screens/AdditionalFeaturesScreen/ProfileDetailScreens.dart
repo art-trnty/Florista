@@ -1,15 +1,12 @@
 import 'dart:convert';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:florista/screens/AdditionalFeaturesScreen/AboutAppScreen.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
-
 import 'package:florista/screens/AdditionalFeaturesScreen/EditProfileScreen.dart';
 import 'package:florista/screens/SignInScreen.dart';
-import 'package:florista/screens/Store/AllStoreScreen.dart';
-import 'package:florista/screens/Store/FavoriteStoreScreen.dart';
+
 
 class ProfileDetailScreen extends StatefulWidget {
   const ProfileDetailScreen({super.key});
@@ -183,12 +180,17 @@ class _ProfileDetailScreenState extends State<ProfileDetailScreen> {
             ],
           ),
         ),
-        actions: const [
+        actions: [
           Padding(
-            padding: EdgeInsets.only(right: 16.0),
-            child: Icon(Icons.person, color: Colors.white),
+            padding: const EdgeInsets.only(right: 16.0),
+            child: IconButton(
+              icon: const Icon(Icons.logout, color: Colors.white),
+              onPressed: _logout,
+              tooltip: 'Logout',
+            ),
           ),
         ],
+
       ),
       body: Stack(
         children: [
