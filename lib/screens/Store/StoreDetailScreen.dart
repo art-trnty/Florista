@@ -1,4 +1,3 @@
-import 'dart:convert';
 import 'package:florista/screens/Store/EditStoreScreen.dart';
 import 'package:florista/widgets/ReviewSection.dart';
 import 'package:florista/widgets/ProductGrid.dart';
@@ -8,8 +7,6 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:florista/AddProductScreen.dart';
-import 'package:florista/models/ProductModel.dart';
-import 'package:florista/screens/Product/EditProductScreen.dart';
 import 'package:florista/models/StoreModel.dart';
 
 class StoreDetailScreen extends StatefulWidget {
@@ -43,7 +40,7 @@ class _StoreDetailScreenState extends State<StoreDetailScreen> {
       appBar: AppBar(
         backgroundColor: Colors.green,
         centerTitle: true,
-        iconTheme: const IconThemeData(color: Colors.white), // Icon back putih
+        iconTheme: const IconThemeData(color: Colors.white),
         title: const Text(
           'Store',
           style: TextStyle(
@@ -60,10 +57,22 @@ class _StoreDetailScreenState extends State<StoreDetailScreen> {
             ],
           ),
         ),
-        actions: const [
+        actions: [
           Padding(
-            padding: EdgeInsets.only(right: 16.0),
-            child: Icon(Icons.store, color: Colors.white),
+            padding: const EdgeInsets.only(right: 16.0),
+            child: isOwner
+                ? IconButton(
+              icon: const Icon(Icons.edit, color: Colors.white),
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => EditStoreScreen(store: _store),
+                  ),
+                );
+              },
+            )
+                : const Icon(Icons.store, color: Colors.white),
           ),
         ],
       ),

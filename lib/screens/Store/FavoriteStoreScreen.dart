@@ -2,7 +2,6 @@ import 'dart:convert';
 import 'dart:typed_data';
 import 'package:florista/models/StoreModel.dart';
 import 'package:florista/screens/AdditionalFeaturesScreen/AboutAppScreen.dart';
-import 'package:florista/screens/AdditionalFeaturesScreen/ProfileDetailScreens.dart';
 import 'package:florista/screens/Store/AllStoreScreen.dart';
 import 'package:florista/screens/Store/StoreDetailScreen.dart';
 import 'package:flutter/material.dart';
