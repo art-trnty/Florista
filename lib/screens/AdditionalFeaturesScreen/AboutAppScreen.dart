@@ -127,7 +127,6 @@ class _AboutAppScreenState extends State<AboutAppScreen> {
         padding: const EdgeInsets.all(12.0),
         child: Column(
           children: [
-            // Judul nama admin di tengah atas
             Center(
               child: Text(
                 name,
@@ -143,7 +142,6 @@ class _AboutAppScreenState extends State<AboutAppScreen> {
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Teks kontak di sebelah kiri
                 Expanded(
                   flex: 3,
                   child: Column(
@@ -184,9 +182,8 @@ class _AboutAppScreenState extends State<AboutAppScreen> {
                   ),
                 ),
                 const SizedBox(width: 12),
-                // Foto di sebelah kanan, tetap berbentuk bulat (circle)
                 CircleAvatar(
-                  radius: 40, // Ukuran sedang
+                  radius: 40,
                   backgroundImage: AssetImage(imagePath),
                 ),
               ],
@@ -243,7 +240,7 @@ class _AboutAppScreenState extends State<AboutAppScreen> {
         centerTitle: true,
         iconTheme: const IconThemeData(
           color: Colors.white,
-        ), // tetap jika ada ikon lain
+        ),
         leading: const Padding(
           padding: EdgeInsets.only(left: 16.0),
           child: Icon(Icons.contact_page_outlined, color: Colors.white),
@@ -314,7 +311,7 @@ class _AboutAppScreenState extends State<AboutAppScreen> {
                   child: Column(
                     children: [
                       const Text(
-                        'Florista - Aplikasi Toko Tanaman Hias',
+                        '- Florista -',
                         style: TextStyle(
                           fontSize: 22,
                           fontWeight: FontWeight.bold,
