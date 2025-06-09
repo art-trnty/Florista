@@ -99,7 +99,7 @@ class _FavoriteStoreScreenState extends State<FavoriteStoreScreen> {
         onTap: _onItemTapped,
         items: const [
           BottomNavigationBarItem(icon: Icon(Icons.home), label: "Home"),
-          BottomNavigationBarItem(icon: Icon(Icons.search), label: "Search"),
+          BottomNavigationBarItem(icon: Icon(Icons.store_sharp), label: "Store"),
           BottomNavigationBarItem(
             icon: Icon(Icons.favorite),
             label: "Favorite",
