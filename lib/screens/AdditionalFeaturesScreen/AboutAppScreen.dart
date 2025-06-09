@@ -325,9 +325,15 @@ class _AboutAppScreenState extends State<AboutAppScreen> {
                   padding: const EdgeInsets.all(16.0),
                   child: Column(
                     children: [
-                      const SizedBox(height: 20),
-                      Image.asset('assets/images/plant_logo.png', height: 120),
-                      const SizedBox(height: 20),
+                      SizedBox(height: 5),
+                      Image.asset(
+                        'assets/Additional/backgroundAboutApp.png',
+                        height:
+                            MediaQuery.of(context).size.height *
+                            0.3, // Lebih proporsional
+                        width: double.infinity,
+                        fit: BoxFit.cover,
+                      ),
                       Card(
                         elevation: 4,
                         shape: RoundedRectangleBorder(

@@ -108,7 +108,6 @@ class _AllStoresScreenState extends State<AllStoresScreen>
   void _showStoreSelectionDialog() {
     final adminStores =
         _stores.where((store) => store.owner == _currentUserUid).toList();
-
     showDialog(
       context: context,
       builder: (context) {
@@ -149,9 +148,7 @@ class _AllStoresScreenState extends State<AllStoresScreen>
       appBar: AppBar(
         backgroundColor: Colors.green,
         centerTitle: true,
-        iconTheme: const IconThemeData(
-          color: Colors.white,
-        ), // tetap jika ada ikon lain
+        iconTheme: const IconThemeData(color: Colors.white),
         leading: const Padding(
           padding: EdgeInsets.only(left: 16.0),
           child: Icon(Icons.store_outlined, color: Colors.white),
@@ -250,7 +247,7 @@ class _AllStoresScreenState extends State<AllStoresScreen>
       bottomNavigationBar: BottomNavigationBar(
         selectedItemColor: Colors.green,
         unselectedItemColor: Colors.grey,
-        currentIndex: 1, // Index untuk halaman AllStores
+        currentIndex: 1,
         onTap: (index) async {
           switch (index) {
             case 0:
@@ -260,7 +257,6 @@ class _AllStoresScreenState extends State<AllStoresScreen>
               );
               break;
             case 1:
-              // Sudah di halaman ini (AllStores)
               break;
             case 2:
               if (_currentUserUid != null) {
@@ -297,7 +293,10 @@ class _AllStoresScreenState extends State<AllStoresScreen>
         },
         items: const [
           BottomNavigationBarItem(icon: Icon(Icons.home), label: "Home"),
-          BottomNavigationBarItem(icon: Icon(Icons.store_sharp), label: "Store"),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.store_sharp),
+            label: "Store",
+          ),
           BottomNavigationBarItem(
             icon: Icon(Icons.favorite),
             label: "Favorite Store",

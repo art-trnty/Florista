@@ -65,7 +65,6 @@ class _EditStoreScreenState extends State<EditStoreScreen> {
             .collection('stores')
             .doc(widget.store.id)
             .update({'imageBase64': base64Image});
-
         setState(() {
           _imageBase64 = base64Image;
         });
@@ -101,17 +100,15 @@ class _EditStoreScreenState extends State<EditStoreScreen> {
             'imageBase64': _imageBase64,
             'rating': double.tryParse(_ratingController.text.trim()) ?? 0.0,
           });
-
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Toko berhasil diperbarui.')),
       );
-      Navigator.pop(context, true); // kembali dengan sinyal sukses
+      Navigator.pop(context, true);
     } catch (e) {
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(SnackBar(content: Text('Gagal memperbarui toko: $e')));
     }
-
     setState(() {
       _isLoading = false;
     });

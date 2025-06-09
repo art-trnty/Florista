@@ -100,8 +100,31 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Lupa Password'),
-        backgroundColor: Colors.green.shade700,
+        backgroundColor: Colors.green,
+        centerTitle: true,
+        iconTheme: const IconThemeData(color: Colors.white),
+        title: const Text(
+          'Forgot Password',
+          style: TextStyle(
+            fontSize: 24,
+            fontWeight: FontWeight.bold,
+            letterSpacing: 2.0,
+            color: Colors.white,
+            shadows: [
+              Shadow(
+                offset: Offset(2.0, 2.0),
+                blurRadius: 3.0,
+                color: Colors.black45,
+              ),
+            ],
+          ),
+        ),
+        actions: const [
+          Padding(
+            padding: EdgeInsets.only(right: 16.0),
+            child: Icon(Icons.person_search, color: Colors.white),
+          ),
+        ],
       ),
       body: Stack(
         children: [
@@ -117,7 +140,9 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
           Container(
             decoration: const BoxDecoration(
               image: DecorationImage(
-                image: AssetImage('assets/Additional/backgroundSign-In.png'),
+                image: AssetImage(
+                  'assets/Additional/backgroundForgotPassword.png',
+                ),
                 fit: BoxFit.cover,
               ),
             ),

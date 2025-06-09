@@ -44,6 +44,8 @@ flutter:
     - assets/Additional/Flowers.jpg
     - assets/Additional/backgroundSign-In.png
     - assets/Additional/backgroundSign-Up.png
+    - assets/Additional/backgroundForgotPassword.png
+    - assets/Additional/backgroundAboutApp.png
     - assets/Additional/backgroundEditProfile.png
     - assets/Additional/NatureBloom.jpg
     - assets/Additional/art.trnty.jpeg
