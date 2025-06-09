@@ -15,6 +15,7 @@ class AboutAppScreen extends StatefulWidget {
 }
 
 class _AboutAppScreenState extends State<AboutAppScreen> {
+  bool _isLoading = true;
   int _selectedIndex = 3;
   String? _currentUserUid;
   List<String> favoriteStoreIds = [];
@@ -34,6 +35,10 @@ class _AboutAppScreenState extends State<AboutAppScreen> {
       });
       await Future.wait([_loadFavoriteStores(uid), _fetchStores()]);
     }
+
+    setState(() {
+      _isLoading = false; // Set selesai loading
+    });
   }
 
   Future<void> _loadFavoriteStores(String uid) async {
@@ -286,7 +291,9 @@ class _AboutAppScreenState extends State<AboutAppScreen> {
           ),
         ],
       ),
-      body: Container(
+      body: _isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : Container(
         decoration: const BoxDecoration(
           gradient: LinearGradient(
             colors: [Color(0xFFE8F5E9), Color(0xFFC8E6C9)],
