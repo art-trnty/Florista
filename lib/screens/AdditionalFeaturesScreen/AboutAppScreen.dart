@@ -383,7 +383,7 @@ class _AboutAppScreenState extends State<AboutAppScreen> {
                                 name: "Person 2 - Revina Trisna Aini",
                                 phone: "+62 83178355461",
                                 instagram: "cacicillo",
-                                facebook: "Revina Trisna Aini",
+                                facebook: "revina.trisnaaini.9",
                                 email: "trisnaainirevina@gmail.com",
                                 address: "Jln. Mayorzen RT 38, RW.07, No.05",
                                 imagePath: "assets/Additional/Revina.jpg",
