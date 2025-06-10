@@ -217,7 +217,7 @@ class _AllStoresScreenState extends State<AllStoresScreen>
                           crossAxisCount: 2,
                           mainAxisSpacing: 24,
                           crossAxisSpacing: 24,
-                          childAspectRatio: 4 / 4,
+                          mainAxisExtent: 210,
                         ),
                     itemBuilder: (context, index) {
                       final store = _stores[index];

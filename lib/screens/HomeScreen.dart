@@ -491,7 +491,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                   crossAxisCount: 2,
                                   crossAxisSpacing: 12,
                                   mainAxisSpacing: 12,
-                                  childAspectRatio: 1.1,
+                                  mainAxisExtent: 210,
                                 ),
                             itemBuilder: (context, index) {
                               final store = filteredStores[index];

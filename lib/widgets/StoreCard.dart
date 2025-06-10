@@ -27,122 +27,126 @@ class StoreCard extends StatelessWidget {
     final screenWidth = MediaQuery.of(context).size.width;
     final cardWidth = screenWidth * 0.7;
 
-    return Container(
+    return SizedBox(
       width: cardWidth,
-      margin: const EdgeInsets.only(right: 12),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: const [BoxShadow(color: Colors.black12, blurRadius: 4)],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          ClipRRect(
-            borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
-            child: Image.memory(
-              imageBytes,
-              height: 100,
-              width: double.infinity,
-              fit: BoxFit.cover,
+      height: 220, // Atur tinggi yang cukup (misalnya 220–250)
+      child: Container(
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: const [BoxShadow(color: Colors.black12, blurRadius: 4)],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            ClipRRect(
+              borderRadius: const BorderRadius.vertical(
+                top: Radius.circular(16),
+              ),
+              child: Image.memory(
+                imageBytes,
+                height: 100,
+                width: double.infinity,
+                fit: BoxFit.cover,
+              ),
             ),
-          ),
-          Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
                   children: [
-                    Expanded(
-                      child: Text(
-                        store.name,
-                        style: const TextStyle(fontWeight: FontWeight.bold),
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                    IconButton(
-                      icon: Icon(
-                        isOwner
-                            ? Icons.delete
-                            : (isFavorite
-                                ? Icons.favorite
-                                : Icons.favorite_border),
-                        color: isOwner ? Colors.red : Colors.green,
-                        size: 20,
-                      ),
-                      onPressed: () async {
-                        if (isOwner) {
-                          final confirm = await showDialog<bool>(
-                            context: context,
-                            builder:
-                                (_) => AlertDialog(
-                                  title: const Text("Hapus Toko"),
-                                  content: const Text(
-                                    "Apakah Anda yakin ingin menghapus toko ini?",
-                                  ),
-                                  actions: [
-                                    TextButton(
-                                      onPressed:
-                                          () => Navigator.pop(context, false),
-                                      child: const Text("Batal"),
-                                    ),
-                                    TextButton(
-                                      onPressed:
-                                          () => Navigator.pop(context, true),
-                                      child: const Text(
-                                        "Hapus",
-                                        style: TextStyle(color: Colors.red),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                          );
-                          if (confirm == true && onDelete != null) {
-                            onDelete!();
-                          }
-                        } else {
-                          if (onToggleFavorite != null) {
-                            onToggleFavorite!();
-                          }
-                        }
-                      },
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 4),
-
-                // ⭐ Rating Baris Sendiri
-                Row(
-                  children: [
-                    ..._buildRatingStars(rating),
-                    const SizedBox(width: 4),
-                    if (rating > 0)
-                      Text(
-                        rating.toStringAsFixed(1),
-                        style: const TextStyle(
-                          fontSize: 12,
-                          fontWeight: FontWeight.bold,
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Expanded(
+                          child: Text(
+                            store.name,
+                            style: const TextStyle(fontWeight: FontWeight.bold),
+                            overflow: TextOverflow.ellipsis,
+                          ),
                         ),
-                      ),
+                        IconButton(
+                          icon: Icon(
+                            isOwner
+                                ? Icons.delete
+                                : (isFavorite
+                                    ? Icons.favorite
+                                    : Icons.favorite_border),
+                            color: isOwner ? Colors.red : Colors.green,
+                            size: 20,
+                          ),
+                          onPressed: () async {
+                            if (isOwner) {
+                              final confirm = await showDialog<bool>(
+                                context: context,
+                                builder:
+                                    (_) => AlertDialog(
+                                      title: const Text("Hapus Toko"),
+                                      content: const Text(
+                                        "Apakah Anda yakin ingin menghapus toko ini?",
+                                      ),
+                                      actions: [
+                                        TextButton(
+                                          onPressed:
+                                              () =>
+                                                  Navigator.pop(context, false),
+                                          child: const Text("Batal"),
+                                        ),
+                                        TextButton(
+                                          onPressed:
+                                              () =>
+                                                  Navigator.pop(context, true),
+                                          child: const Text(
+                                            "Hapus",
+                                            style: TextStyle(color: Colors.red),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                              );
+                              if (confirm == true && onDelete != null) {
+                                onDelete!();
+                              }
+                            } else {
+                              if (onToggleFavorite != null) {
+                                onToggleFavorite!();
+                              }
+                            }
+                          },
+                        ),
+                      ],
+                    ),
+                    Row(
+                      children: [
+                        ..._buildRatingStars(rating),
+                        const SizedBox(width: 4),
+                        if (rating > 0)
+                          Text(
+                            rating.toStringAsFixed(1),
+                            style: const TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                      ],
+                    ),
+                    const SizedBox(height: 4),
+
+                    Row(
+                      children: const [
+                        Icon(Icons.verified, size: 16, color: Colors.blue),
+                        SizedBox(width: 4),
+                        Text("Verified", style: TextStyle(fontSize: 12)),
+                      ],
+                    ),
                   ],
                 ),
-
-                const SizedBox(height: 4),
-
-                Row(
-                  children: [
-                    const Icon(Icons.verified, size: 16, color: Colors.blue),
-                    const SizedBox(width: 4),
-                    const Text("Verified", style: TextStyle(fontSize: 12)),
-                  ],
-                ),
-              ],
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
