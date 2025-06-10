@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:url_launcher/url_launcher_string.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class StoreBiodata extends StatelessWidget {
   final String storeId;
@@ -13,6 +14,7 @@ class StoreBiodata extends StatelessWidget {
             .collection('stores')
             .doc(storeId)
             .get();
+
     if (!storeDoc.exists) {
       throw Exception('Store not found');
     }
@@ -35,10 +37,16 @@ class StoreBiodata extends StatelessWidget {
   }
 
   void _launchEmail(BuildContext context, String email) async {
-    final url = 'mailto:$email';
+    if (email.trim().isEmpty || email == '-') {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text("Email tidak tersedia")));
+      return;
+    }
 
+    final url = 'mailto:$email';
     if (await canLaunchUrlString(url)) {
-      await launchUrlString(url);
+      await launchUrlString(url, mode: LaunchMode.externalApplication);
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text("Gagal membuka aplikasi email")),
@@ -47,24 +55,36 @@ class StoreBiodata extends StatelessWidget {
   }
 
   void _launchMapFromAddress(BuildContext context, String address) async {
+    if (address.trim().isEmpty || address == '-') {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text("Alamat tidak tersedia")));
+      return;
+    }
+
     final encodedAddress = Uri.encodeComponent(address);
     final url =
         'https://www.google.com/maps/search/?api=1&query=$encodedAddress';
-
     if (await canLaunchUrlString(url)) {
-      await launchUrlString(url);
+      await launchUrlString(url, mode: LaunchMode.externalApplication);
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Gagal membuka alamat di Google Maps")),
+        const SnackBar(content: Text("Gagal membuka Google Maps")),
       );
     }
   }
 
   void _launchSMS(BuildContext context, String phoneNumber) async {
-    final url = 'sms:$phoneNumber';
+    if (phoneNumber.trim().isEmpty || phoneNumber == '-') {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text("Nomor HP tidak tersedia")));
+      return;
+    }
 
+    final url = 'sms:$phoneNumber';
     if (await canLaunchUrlString(url)) {
-      await launchUrlString(url);
+      await launchUrlString(url, mode: LaunchMode.externalApplication);
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text("Gagal membuka aplikasi pesan")),
