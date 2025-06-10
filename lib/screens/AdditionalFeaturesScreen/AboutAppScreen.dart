@@ -387,7 +387,7 @@ class _AboutAppScreenState extends State<AboutAppScreen> {
                                 instagram: "cacicillo",
                                 facebook: "revina.trisnaaini.9",
                                 email: "trisnaainirevina@gmail.com",
-                                address: "Jln. Mayorzen RT 38, RW.07, No.05",
+                                address: "Jln. Mayor zen, Kota Palembang",
                                 imagePath: "assets/Additional/Revina.jpg",
                               ),
                               buildContactCard(
@@ -402,7 +402,7 @@ class _AboutAppScreenState extends State<AboutAppScreen> {
                               ),
                               buildContactCard(
                                 name: "Person 4 - Nabila Salwa Zahrani",
-                                phone: "+62 82298203734",
+                                phone: "+62 82298203736",
                                 instagram: "nabilaaasz__",
                                 facebook: "nabila.salwazahrani",
                                 email:

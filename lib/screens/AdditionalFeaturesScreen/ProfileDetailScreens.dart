@@ -47,7 +47,7 @@ class _ProfileDetailScreenState extends State<ProfileDetailScreen> {
       return MemoryImage(base64Decode(base64Str));
     } catch (e) {
       debugPrint("Gagal decode base64: $e");
-      return const AssetImage("assets/profile.jpg");
+      return const AssetImage("assets//Additional/Profile.png");
     }
   }
 
