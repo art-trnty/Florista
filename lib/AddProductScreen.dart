@@ -77,7 +77,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
       appBar: AppBar(
         backgroundColor: Colors.green,
         centerTitle: true,
-        iconTheme: const IconThemeData(color: Colors.white), // Icon back putih
+        iconTheme: const IconThemeData(color: Colors.white),
         title: const Text(
           'Add Product',
           style: TextStyle(

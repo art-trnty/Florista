@@ -7,8 +7,8 @@ import 'package:florista/models/ProductModel.dart';
 class ProductCard extends StatelessWidget {
   final ProductModel product;
   final VoidCallback? onTapFavorite;
-  final VoidCallback? onTapEdit; // optional edit
-  final VoidCallback? onTapDelete; // optional delete
+  final VoidCallback? onTapEdit;
+  final VoidCallback? onTapDelete;
   final bool showAdminControls;
 
   const ProductCard({
@@ -35,7 +35,6 @@ class ProductCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Gambar Produk
           ClipRRect(
             borderRadius: BorderRadius.circular(12),
             child: Image.memory(
@@ -46,8 +45,6 @@ class ProductCard extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 8),
-
-          // Nama Produk
           Text(
             product.name,
             maxLines: 1,
@@ -55,16 +52,12 @@ class ProductCard extends StatelessWidget {
             style: const TextStyle(fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 4),
-
-          // Harga Produk
           Text(
             "Rp ${NumberFormat.decimalPattern('id_ID').format(product.price)}",
             style: const TextStyle(color: Colors.green),
           ),
 
           const SizedBox(height: 4),
-
-          // Deskripsi (opsional)
           if (product.description.isNotEmpty)
             Text(
               product.description,
@@ -74,8 +67,6 @@ class ProductCard extends StatelessWidget {
             ),
 
           const SizedBox(height: 8),
-
-          // Tanggal dibuat + Tombol
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [

@@ -127,7 +127,7 @@ class SignInScreenState extends State<SignInScreen> {
                         RichText(
                           text: TextSpan(
                             style: const TextStyle(
-                              fontSize: 16.0,
+                              fontSize: 14.0,
                               color: Colors.white,
                             ),
                             children: [

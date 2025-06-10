@@ -52,7 +52,6 @@ class _AboutAppScreenState extends State<AboutAppScreen> {
       });
       await Future.wait([_loadFavoriteStores(uid), _fetchStores()]);
     }
-
     setState(() {
       _isLoading = false;
     });
@@ -328,9 +327,7 @@ class _AboutAppScreenState extends State<AboutAppScreen> {
                       SizedBox(height: 5),
                       Image.asset(
                         'assets/Additional/backgroundAboutApp.png',
-                        height:
-                            MediaQuery.of(context).size.height *
-                            0.3, // Lebih proporsional
+                        height: MediaQuery.of(context).size.height * 0.3,
                         width: double.infinity,
                         fit: BoxFit.cover,
                       ),
@@ -355,6 +352,17 @@ class _AboutAppScreenState extends State<AboutAppScreen> {
                               const Text(
                                 'Aplikasi ini dibuat untuk membantu Anda menemukan berbagai toko tanaman hias terbaik di sekitar Anda. Dengan antarmuka yang sederhana dan fitur-fitur yang lengkap, Anda bisa mencari, menambahkan favorit, dan mengeksplor berbagai tanaman hias dengan mudah.',
                                 style: TextStyle(fontSize: 16),
+                                textAlign: TextAlign.center,
+                              ),
+                              const SizedBox(height: 24),
+                              const Text(
+                                'Jika ada yang ingin ditanyakan bisa hubungi kontak person dibawah ini !',
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  color: Colors.red,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                                textAlign: TextAlign.center,
                               ),
                               const SizedBox(height: 16),
                               const Divider(),
@@ -379,7 +387,7 @@ class _AboutAppScreenState extends State<AboutAppScreen> {
                                 facebook: "art.trnty",
                                 email: "rara.anantabunga03@gmail.com",
                                 address: "Jl. H Sanusi No.3231, Suka Bangun",
-                                imagePath: "assets/Additional/art.trnty.jpeg",
+                                imagePath: "assets/User/art.trnty.jpeg",
                               ),
                               buildContactCard(
                                 name: "Person 2 - Revina Trisna Aini",
@@ -388,7 +396,7 @@ class _AboutAppScreenState extends State<AboutAppScreen> {
                                 facebook: "revina.trisnaaini.9",
                                 email: "trisnaainirevina@gmail.com",
                                 address: "Jln. Mayor zen, Kota Palembang",
-                                imagePath: "assets/Additional/Revina.jpg",
+                                imagePath: "assets/User/Revina.jpg",
                               ),
                               buildContactCard(
                                 name: "Person 3 - Komariah Wulandari",
@@ -398,7 +406,7 @@ class _AboutAppScreenState extends State<AboutAppScreen> {
                                 email:
                                     "komariahwulandari_2226240119@mhs.mdp.ac.id",
                                 address: "Jl. Perintis Kemerdekaan, Palembang",
-                                imagePath: "assets/Additional/wulann.jpg",
+                                imagePath: "assets/User/wulann.jpg",
                               ),
                               buildContactCard(
                                 name: "Person 4 - Nabila Salwa Zahrani",
@@ -408,7 +416,7 @@ class _AboutAppScreenState extends State<AboutAppScreen> {
                                 email:
                                     "nabilasalwazahrani_2226240133@mhs.mdp.ac.id",
                                 address: "Jl. Gersik, Kota Palembang, ",
-                                imagePath: "assets/Additional/nabila.jpg",
+                                imagePath: "assets/User/nabila.jpg",
                               ),
 
                               const SizedBox(height: 16),

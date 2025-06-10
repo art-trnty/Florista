@@ -43,8 +43,6 @@ class SignUpScreenState extends State<SignUpScreen> {
   Future<void> _sendOtp(String email) async {
     final random = DateTime.now().millisecondsSinceEpoch % 1000000;
     _generatedOtp = random;
-
-    // Simulasi kirim OTP (seharusnya kirim via email di backend)
     print("Kode OTP untuk $email: $_generatedOtp");
 
     await _showOtpDialog(email);
@@ -67,15 +65,15 @@ class SignUpScreenState extends State<SignUpScreen> {
           actions: [
             TextButton(
               onPressed: () {
-                Navigator.of(context).pop(); // keluar dialog
+                Navigator.of(context).pop();
               },
               child: const Text('Batal'),
             ),
             ElevatedButton(
               onPressed: () async {
                 if (otpController.text == _generatedOtp.toString()) {
-                  Navigator.of(context).pop(); // keluar dialog
-                  await _createFirebaseAccount(); // hanya buat akun kalau OTP cocok
+                  Navigator.of(context).pop();
+                  await _createFirebaseAccount();
                 } else {
                   _showErrorMessage('Kode OTP salah!');
                 }
@@ -171,7 +169,7 @@ class SignUpScreenState extends State<SignUpScreen> {
                             style: TextStyle(
                               fontSize: 28,
                               fontWeight: FontWeight.bold,
-                              color: Colors.green.shade800,
+                              color: Colors.black,
                             ),
                           ),
                         ),
@@ -435,7 +433,12 @@ class SignUpScreenState extends State<SignUpScreen> {
                                     )
                                     : const Text(
                                       'Registrasi',
-                                      style: TextStyle(fontSize: 16),
+                                      style: TextStyle(
+                                        fontSize: 16,
+                                        color:
+                                            Colors
+                                                .white, // warna teks diubah menjadi putih
+                                      ),
                                     ),
                           ),
                         ),

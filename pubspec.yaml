@@ -28,7 +28,6 @@ dev_dependencies:
   shimmer: ^3.0.0
   intl: ^0.20.2
   permission_handler: ^12.0.0+1
-  timeago: ^3.7.1
   geolocator: ^14.0.1
   geocoding: ^4.0.0
   url_launcher: ^6.3.1
@@ -39,17 +38,16 @@ flutter:
 
   uses-material-design: true
   assets:
-
+    - assets/Additional/backgroundApp.png
     - assets/Additional/Profile.png
     - assets/Additional/Flowers.jpg
     - assets/Additional/backgroundSign-In.png
-    - assets/Additional/backgroundSign-Up.png
     - assets/Additional/backgroundForgotPassword.png
     - assets/Additional/backgroundAboutApp.png
-    - assets/Additional/backgroundEditProfile.png
     - assets/Additional/NatureBloom.jpg
-    - assets/Additional/art.trnty.jpeg
-    - assets/Additional/Revina.jpg
-    - assets/Additional/wulann.jpg
-    - assets/Additional/nabila.jpg
+#  Contact Person
+    - assets/User/art.trnty.jpeg
+    - assets/User/Revina.jpg
+    - assets/User/wulann.jpg
+    - assets/User/nabila.jpg
 

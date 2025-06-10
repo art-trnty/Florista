@@ -29,7 +29,7 @@ class StoreCard extends StatelessWidget {
 
     return SizedBox(
       width: cardWidth,
-      height: 220, // Atur tinggi yang cukup (misalnya 220–250)
+      height: 220,
       child: Container(
         decoration: BoxDecoration(
           color: Colors.white,

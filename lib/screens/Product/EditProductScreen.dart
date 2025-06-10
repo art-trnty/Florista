@@ -132,7 +132,6 @@ class _EditProductScreenState extends State<EditProductScreen> {
                   return null;
                 },
               ),
-
               const SizedBox(height: 20),
               ElevatedButton(
                 onPressed: _updateProduct,
