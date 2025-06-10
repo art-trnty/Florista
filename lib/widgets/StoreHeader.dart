@@ -48,15 +48,6 @@ class StoreHeader extends StatelessWidget {
                   const SizedBox(height: 8),
                   Row(
                     children: [
-                      const Icon(
-                        Icons.location_on,
-                        size: 16,
-                        color: Colors.green,
-                      ),
-                      const SizedBox(width: 4),
-                      const Text("2 km"),
-                      const SizedBox(width: 8),
-
                       // ★ Dynamic Stars
                       ..._buildRatingStars(rating),
                       const SizedBox(width: 8),
