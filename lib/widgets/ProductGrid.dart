@@ -63,8 +63,8 @@ class ProductGrid extends StatelessWidget {
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
           gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
             crossAxisCount: 2,
-            childAspectRatio: 1.2,
             mainAxisSpacing: 12,
+            mainAxisExtent: 225,
             crossAxisSpacing: 12,
           ),
           itemBuilder: (context, index) {
@@ -144,30 +144,46 @@ class ProductGrid extends StatelessWidget {
                                   fontSize: 12,
                                 ),
                               ),
-                              if (isOwner)
-                                Align(
-                                  alignment: Alignment.centerRight,
-                                  child: IconButton(
-                                    icon: const Icon(
-                                      Icons.edit,
-                                      size: 18,
-                                      color: Colors.blue,
-                                    ),
-                                    padding: EdgeInsets.zero,
-                                    constraints: const BoxConstraints(),
-                                    onPressed: () {
-                                      Navigator.push(
-                                        context,
-                                        MaterialPageRoute(
-                                          builder:
-                                              (_) => EditProductScreen(
-                                                product: product,
-                                              ),
+                              if (isOwner) ...[
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.end,
+                                  children: [
+                                    if (isSelected)
+                                      IconButton(
+                                        icon: const Icon(
+                                          Icons.delete,
+                                          size: 18,
+                                          color: Colors.red,
                                         ),
-                                      );
-                                    },
-                                  ),
+                                        padding: EdgeInsets.zero,
+                                        constraints: const BoxConstraints(),
+                                        onPressed: () async {
+                                          // ...
+                                        },
+                                      ),
+                                    IconButton(
+                                      icon: const Icon(
+                                        Icons.edit,
+                                        size: 18,
+                                        color: Colors.blue,
+                                      ),
+                                      padding: EdgeInsets.zero,
+                                      constraints: const BoxConstraints(),
+                                      onPressed: () {
+                                        Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                            builder:
+                                                (_) => EditProductScreen(
+                                                  product: product,
+                                                ),
+                                          ),
+                                        );
+                                      },
+                                    ),
+                                  ],
                                 ),
+                              ],
                             ],
                           ),
                         ),
