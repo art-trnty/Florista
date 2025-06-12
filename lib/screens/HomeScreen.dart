@@ -33,6 +33,7 @@ class _HomeScreenState extends State<HomeScreen> {
   final TextEditingController _searchController = TextEditingController();
   String _searchKeyword = "";
   List<String> favoriteStoreIds = [];
+  bool _isStoreLoading = true;
 
   @override
   void initState() {
@@ -140,14 +141,27 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Future<void> _fetchStores() async {
-    final snapshot =
-        await FirebaseFirestore.instance.collection('stores').get();
     setState(() {
-      _stores =
-          snapshot.docs
-              .map((doc) => StoreModel.fromMap(doc.data(), doc.id))
-              .toList();
+      _isStoreLoading = true;
     });
+
+    try {
+      final snapshot =
+          await FirebaseFirestore.instance.collection('stores').get();
+
+      setState(() {
+        _stores =
+            snapshot.docs
+                .map((doc) => StoreModel.fromMap(doc.data(), doc.id))
+                .toList();
+      });
+    } catch (e) {
+      debugPrint("Gagal memuat toko: $e");
+    } finally {
+      setState(() {
+        _isStoreLoading = false;
+      });
+    }
   }
 
   Future<void> _fetchAllProducts() async {
@@ -469,8 +483,18 @@ class _HomeScreenState extends State<HomeScreen> {
                         ],
                       ),
                       const SizedBox(height: 12),
-                      _stores.isEmpty
+                      _isStoreLoading
                           ? const Center(child: CircularProgressIndicator())
+                          : _stores.isEmpty
+                          ? const Center(
+                            child: Padding(
+                              padding: EdgeInsets.all(20),
+                              child: Text(
+                                "Belum ada toko ditambahkan.",
+                                style: TextStyle(color: Colors.grey),
+                              ),
+                            ),
+                          )
                           : filteredStores.isEmpty
                           ? const Center(
                             child: Padding(
