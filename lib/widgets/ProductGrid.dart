@@ -119,6 +119,16 @@ class ProductGrid extends StatelessWidget {
                               ),
                               const SizedBox(height: 4),
                               Text(
+                                product.description,
+                                style: const TextStyle(
+                                  fontSize: 12,
+                                  color: Colors.black87,
+                                ),
+                                maxLines: 2,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
                                 "Rp ${product.price.toStringAsFixed(0)}",
                                 style: const TextStyle(
                                   color: Colors.green,
