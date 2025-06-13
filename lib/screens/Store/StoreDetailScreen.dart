@@ -32,6 +32,20 @@ class _StoreDetailScreenState extends State<StoreDetailScreen> {
     _store = widget.store;
   }
 
+  Future<void> fetchUpdatedStore() async {
+    final doc =
+        await FirebaseFirestore.instance
+            .collection('stores')
+            .doc(_store.id)
+            .get();
+
+    if (doc.exists && doc.data() != null) {
+      setState(() {
+        _store = StoreModel.fromMap(doc.data() as Map<String, dynamic>, doc.id);
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final isOwner = FirebaseAuth.instance.currentUser?.uid == _store.owner;
@@ -60,19 +74,29 @@ class _StoreDetailScreenState extends State<StoreDetailScreen> {
         actions: [
           Padding(
             padding: const EdgeInsets.only(right: 16.0),
-            child: isOwner
-                ? IconButton(
-              icon: const Icon(Icons.edit, color: Colors.white),
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) => EditStoreScreen(store: _store),
-                  ),
-                );
-              },
-            )
-                : const Icon(Icons.store, color: Colors.white),
+            child:
+                isOwner
+                    ? IconButton(
+                      icon: const Icon(Icons.edit, color: Colors.white),
+                      onPressed: () async {
+                        final result = await Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => EditStoreScreen(store: _store),
+                          ),
+                        );
+
+                        if (result == true) {
+                          await fetchUpdatedStore();
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text('Data toko diperbarui'),
+                            ),
+                          );
+                        }
+                      },
+                    )
+                    : const Icon(Icons.store, color: Colors.white),
           ),
         ],
       ),

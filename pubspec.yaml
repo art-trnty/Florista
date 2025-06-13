@@ -12,13 +12,6 @@ dependencies:
     sdk: flutter
 
   cupertino_icons: ^1.0.8
-
-dev_dependencies:
-  flutter_test:
-    sdk: flutter
-
-  flutter_lints: ^5.0.0
-  cupertino_icons: ^1.0.8
   firebase_core: ^3.13.0
   firebase_auth: ^5.5.2
   firebase_app_check: ^0.3.2+5
@@ -33,6 +26,12 @@ dev_dependencies:
   url_launcher: ^6.3.1
   url_launcher_web: ^2.4.1
   flutter_spinkit: ^5.2.1
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^5.0.0
+
 
 flutter:
 

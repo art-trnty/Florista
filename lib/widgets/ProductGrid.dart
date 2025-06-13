@@ -158,7 +158,71 @@ class ProductGrid extends StatelessWidget {
                                         padding: EdgeInsets.zero,
                                         constraints: const BoxConstraints(),
                                         onPressed: () async {
-                                          // ...
+                                          final confirm = await showDialog<
+                                            bool
+                                          >(
+                                            context: context,
+                                            builder:
+                                                (context) => AlertDialog(
+                                                  title: const Text(
+                                                    'Konfirmasi',
+                                                  ),
+                                                  content: const Text(
+                                                    'Apakah Anda yakin ingin menghapus produk ini?',
+                                                  ),
+                                                  actions: [
+                                                    TextButton(
+                                                      onPressed:
+                                                          () => Navigator.pop(
+                                                            context,
+                                                            false,
+                                                          ),
+                                                      child: const Text(
+                                                        'Batal',
+                                                      ),
+                                                    ),
+                                                    TextButton(
+                                                      onPressed:
+                                                          () => Navigator.pop(
+                                                            context,
+                                                            true,
+                                                          ),
+                                                      child: const Text(
+                                                        'Hapus',
+                                                      ),
+                                                    ),
+                                                  ],
+                                                ),
+                                          );
+
+                                          if (confirm == true) {
+                                            try {
+                                              await FirebaseFirestore.instance
+                                                  .collection('products')
+                                                  .doc(product.id)
+                                                  .delete();
+
+                                              ScaffoldMessenger.of(
+                                                context,
+                                              ).showSnackBar(
+                                                const SnackBar(
+                                                  content: Text(
+                                                    'Produk berhasil dihapus',
+                                                  ),
+                                                ),
+                                              );
+                                            } catch (e) {
+                                              ScaffoldMessenger.of(
+                                                context,
+                                              ).showSnackBar(
+                                                SnackBar(
+                                                  content: Text(
+                                                    'Gagal menghapus produk: $e',
+                                                  ),
+                                                ),
+                                              );
+                                            }
+                                          }
                                         },
                                       ),
                                     IconButton(

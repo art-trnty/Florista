@@ -2,7 +2,7 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:florista/screens/SignUpScreen.dart';
+import 'package:florista/screens/SignInScreen.dart';
 
 class ForgotPasswordScreen extends StatefulWidget {
   const ForgotPasswordScreen({super.key});
@@ -224,7 +224,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                                         context,
                                         MaterialPageRoute(
                                           builder:
-                                              (context) => const SignUpScreen(),
+                                              (context) => const SignInScreen(),
                                         ),
                                       );
                                     },

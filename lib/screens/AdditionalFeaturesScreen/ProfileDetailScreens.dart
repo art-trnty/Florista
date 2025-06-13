@@ -157,50 +157,56 @@ class _ProfileDetailScreenState extends State<ProfileDetailScreen> {
       return const Scaffold(body: Center(child: Text('Pengguna belum login.')));
     }
 
-    return Scaffold(
-      backgroundColor: Colors.white,
-      appBar: AppBar(
-        backgroundColor: Colors.green,
-        centerTitle: true,
-        iconTheme: const IconThemeData(color: Colors.white),
-        title: const Text(
-          'Profile',
-          style: TextStyle(
-            fontSize: 24,
-            fontWeight: FontWeight.bold,
-            letterSpacing: 2.0,
-            color: Colors.white,
-            shadows: [
-              Shadow(
-                offset: Offset(2.0, 2.0),
-                blurRadius: 3.0,
-                color: Colors.black45,
-              ),
-            ],
+    return WillPopScope(
+      onWillPop: () async {
+        Navigator.pop(context, true); // Memberi sinyal ke halaman sebelumnya
+        return false;
+      },
+      child: Scaffold(
+        backgroundColor: Colors.white,
+        appBar: AppBar(
+          backgroundColor: Colors.green,
+          centerTitle: true,
+          iconTheme: const IconThemeData(color: Colors.white),
+          title: const Text(
+            'Profile',
+            style: TextStyle(
+              fontSize: 24,
+              fontWeight: FontWeight.bold,
+              letterSpacing: 2.0,
+              color: Colors.white,
+              shadows: [
+                Shadow(
+                  offset: Offset(2.0, 2.0),
+                  blurRadius: 3.0,
+                  color: Colors.black45,
+                ),
+              ],
+            ),
           ),
+          actions: [
+            Padding(
+              padding: const EdgeInsets.only(right: 16.0),
+              child: IconButton(
+                icon: const Icon(Icons.logout, color: Colors.white),
+                onPressed: _logout,
+                tooltip: 'Logout',
+              ),
+            ),
+          ],
         ),
-        actions: [
-          Padding(
-            padding: const EdgeInsets.only(right: 16.0),
-            child: IconButton(
-              icon: const Icon(Icons.logout, color: Colors.white),
-              onPressed: _logout,
-              tooltip: 'Logout',
-            ),
-          ),
-        ],
-      ),
-      body: Stack(
-        children: [
-          _buildProfileContent(),
-          if (_isLoading)
-            Container(
-              color: Colors.black.withOpacity(0.3),
-              child: const Center(
-                child: SpinKitFadingCircle(color: Colors.green, size: 60.0),
+        body: Stack(
+          children: [
+            _buildProfileContent(),
+            if (_isLoading)
+              Container(
+                color: Colors.black.withOpacity(0.3),
+                child: const Center(
+                  child: SpinKitFadingCircle(color: Colors.green, size: 60.0),
+                ),
               ),
-            ),
-        ],
+          ],
+        ),
       ),
     );
   }

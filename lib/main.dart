@@ -9,13 +9,14 @@ import 'package:firebase_app_check/firebase_app_check.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await _ensureLocationPermission();
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   await FirebaseAppCheck.instance.activate(
+    androidProvider: AndroidProvider.debug,
     webProvider: ReCaptchaV3Provider(
       '6Le0uVorAAAAAAZco5gPJwx8kV8sSpBzkOVy0B9l',
     ),
   );
+  await _ensureLocationPermission();
   runApp(const MyApp());
 }
 
@@ -23,12 +24,13 @@ Future<void> _ensureLocationPermission() async {
   LocationPermission permission = await Geolocator.checkPermission();
   if (permission == LocationPermission.denied ||
       permission == LocationPermission.deniedForever) {
-    permission = await Geolocator.requestPermission();
+    await Geolocator.requestPermission();
   }
 }
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -49,14 +51,18 @@ class EntryScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return StreamBuilder(
+    return StreamBuilder<User?>(
       stream: FirebaseAuth.instance.authStateChanges(),
       builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Scaffold(
+            body: Center(child: CircularProgressIndicator()),
+          );
+        }
         if (snapshot.hasData) {
           return const HomeScreen();
-        } else {
-          return const WelcomeScreen();
         }
+        return const WelcomeScreen();
       },
     );
   }

@@ -345,13 +345,16 @@ class _HomeScreenState extends State<HomeScreen> {
                       ],
                     ),
                     GestureDetector(
-                      onTap: () {
-                        Navigator.push(
+                      onTap: () async {
+                        final result = await Navigator.push(
                           context,
                           MaterialPageRoute(
                             builder: (context) => const ProfileDetailScreen(),
                           ),
                         );
+                        if (result == true && _currentUserUid != null) {
+                          _loadProfileImage(_currentUserUid!);
+                        }
                       },
                       child:
                           _isProfileLoading
