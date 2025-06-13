@@ -525,7 +525,6 @@ class _HomeScreenState extends State<HomeScreen> {
                               final isFavorite = favoriteStoreIds.contains(
                                 store.id,
                               );
-
                               return GestureDetector(
                                 onTap: () {
                                   Navigator.of(context).push(

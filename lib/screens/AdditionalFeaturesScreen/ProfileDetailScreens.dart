@@ -166,7 +166,7 @@ class _ProfileDetailScreenState extends State<ProfileDetailScreen> {
 
     return WillPopScope(
       onWillPop: () async {
-        Navigator.pop(context, true); // Memberi sinyal ke halaman sebelumnya
+        Navigator.pop(context, true);
         return false;
       },
       child: Scaffold(

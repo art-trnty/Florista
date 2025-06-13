@@ -36,7 +36,6 @@ class SignUpScreenState extends State<SignUpScreen> {
             .collection('users')
             .where('username', isEqualTo: username)
             .get();
-
     return querySnapshot.docs.isNotEmpty;
   }
 
@@ -435,9 +434,7 @@ class SignUpScreenState extends State<SignUpScreen> {
                                       'Registrasi',
                                       style: TextStyle(
                                         fontSize: 16,
-                                        color:
-                                            Colors
-                                                .white, // warna teks diubah menjadi putih
+                                        color: Colors.white,
                                       ),
                                     ),
                           ),
@@ -525,7 +522,7 @@ class SignUpScreenState extends State<SignUpScreen> {
           actions: [
             TextButton(
               onPressed: () async {
-                await user.reload(); // reload status verifikasi
+                await user.reload();
                 if (FirebaseAuth.instance.currentUser!.emailVerified) {
                   Navigator.of(context).pop();
                 } else {
