@@ -36,7 +36,7 @@ class ProductGrid extends StatelessWidget {
         final docs = snapshot.data!.docs;
 
         if (docs.isEmpty) {
-          return const Center(child: Text("Belum ada produk."));
+          return const Center(child: Text("Belum ada produk pada toko ini."));
         }
 
         final products =

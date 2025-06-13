@@ -73,7 +73,7 @@ class _ReviewSectionState extends State<ReviewSection> {
 
   Future<void> _toggleLike(DocumentSnapshot doc) async {
     final userId = FirebaseAuth.instance.currentUser!.uid;
-    final likes = List<String>.from(doc['likes'] ?? []);
+    final List<String> likes = List<String>.from(doc['likes'] ?? []);
 
     if (likes.contains(userId)) {
       likes.remove(userId);

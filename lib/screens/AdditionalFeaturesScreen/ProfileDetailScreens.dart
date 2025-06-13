@@ -61,6 +61,13 @@ class _ProfileDetailScreenState extends State<ProfileDetailScreen> {
       final base64Image = base64Encode(bytes);
 
       try {
+        if (base64Image.length > 1000000) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Ukuran gambar terlalu besar.')),
+          );
+          setState(() => _isLoading = false);
+          return;
+        }
         await userDocRef.update({'photoBase64': base64Image});
         setState(() {}); // reload
         ScaffoldMessenger.of(context).showSnackBar(
