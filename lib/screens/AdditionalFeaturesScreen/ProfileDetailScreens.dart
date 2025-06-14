@@ -53,33 +53,67 @@ class _ProfileDetailScreenState extends State<ProfileDetailScreen> {
 
   Future<void> _pickImage(ImageSource source) async {
     final picker = ImagePicker();
-    final pickedImage = await picker.pickImage(source: source);
+    final pickedImage = await picker.pickImage(
+      source: source,
+      imageQuality: 50, // Kompresi agar ukuran kecil
+      maxWidth: 300,
+      maxHeight: 300,
+    );
 
-    if (pickedImage != null) {
-      setState(() => _isLoading = true);
+    if (pickedImage == null) return;
+
+    setState(() => _isLoading = true);
+
+    try {
       final bytes = await pickedImage.readAsBytes();
-      final base64Image = base64Encode(bytes);
 
-      try {
-        if (base64Image.length > 1000000) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Ukuran gambar terlalu besar.')),
-          );
-          setState(() => _isLoading = false);
-          return;
-        }
-        await userDocRef.update({'photoBase64': base64Image});
-        setState(() {}); // reload
+      if (bytes.isEmpty) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('Gambar tidak valid.')));
+        return;
+      }
+
+      final base64Image = base64Encode(bytes);
+      debugPrint("📦 Base64 size: ${base64Image.length} bytes");
+
+      // Validasi ukuran maksimal 900.000 karakter (~700KB)
+      if (base64Image.length > 900000) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Ukuran gambar terlalu besar.')),
+        );
+        return;
+      }
+
+      // Upload ke Firestore
+      if (base64Image.trim().isNotEmpty) {
+        await userDocRef.update({'photoBase64': base64Image}).catchError((
+          error,
+        ) async {
+          // Jika dokumen belum ada, pakai set
+          if (error.toString().contains('NOT_FOUND')) {
+            await userDocRef.set({
+              'photoBase64': base64Image,
+            }, SetOptions(merge: true));
+          } else {
+            throw error;
+          }
+        });
+
+        setState(() {}); // Refresh tampilan
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Foto berhasil diperbarui')),
         );
-      } catch (e) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Gagal menyimpan foto: $e')));
-      } finally {
-        setState(() => _isLoading = false);
+      } else {
+        debugPrint("⚠️ Base64 kosong atau tidak valid");
       }
+    } catch (e) {
+      debugPrint("❌ Error menyimpan foto: $e");
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Gagal menyimpan foto: $e')));
+    } finally {
+      setState(() => _isLoading = false);
     }
   }
 
